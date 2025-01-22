@@ -57,14 +57,21 @@ body {
   margin-top: 2rem;
 }
 
+.vertical-buttons {
+  display: flex;
+  flex-direction: column; /* Align buttons vertically */
+  gap: 10px; /* Add spacing between buttons */
+}
+
 button {
   background-color: #333;
   color: #fff;
   border: 2px solid #888;
   padding: 10px 20px;
-  margin: 0 10px;
+  margin: 0 auto; /* Center align buttons */
   cursor: pointer;
   font-size: 1rem;
+  width: 200px; /* Ensure consistent button width */
 }
 
 button:hover {
@@ -88,52 +95,4 @@ button:hover {
   padding: 10px;
   margin-top: 5px;
   text-align: left;
-}
-
-/* Store Page */
-.store-container {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  margin-top: 2rem;
-}
-.store-item {
-  background-color: #222;
-  border: 1px solid #444;
-  margin: 1rem;
-  padding: 1rem;
-  width: 200px;
-  text-align: center;
-}
-.store-item img {
-  width: 150px;
-  height: 150px;
-  object-fit: cover;
-}
-.checkout-button {
-  margin-top: 2rem;
-  padding: 10px 20px;
-}
-
-/* Checkout Page */
-form {
-  display: flex;
-  flex-direction: column;
-  width: 300px;
-  margin: 2rem auto;
-  text-align: left;
-}
-form label {
-  margin: 10px 0 5px;
-}
-form input {
-  padding: 8px;
-  margin-bottom: 10px;
-  border: 1px solid #333;
-  background: #222;
-  color: #fff;
-}
-form button {
-  align-self: center;
-  margin-top: 1rem;
 }

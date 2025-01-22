@@ -8,8 +8,12 @@ const contactInfo = document.getElementById('contact-info');
 const listenBtn = document.getElementById('listen-btn');
 const joinBtn = document.getElementById('join-btn');
 
-// When the video ends, reveal the main content
+// Start video halfway through
 if (introVideo) {
+  introVideo.addEventListener('loadedmetadata', () => {
+    introVideo.currentTime = introVideo.duration / 2; // Start at halfway point
+  });
+
   introVideo.addEventListener('ended', () => {
     // Hide video container
     document.getElementById('video-container').style.display = 'none';
@@ -18,11 +22,11 @@ if (introVideo) {
 
     // Delay the button appearances
     setTimeout(() => {
-      listenBtn.style.display = 'inline-block';
+      listenBtn.style.display = 'block'; // Changed to 'block' for vertical layout
       setTimeout(() => {
-        joinBtn.style.display = 'inline-block';
+        joinBtn.style.display = 'block'; // Changed to 'block' for vertical layout
       }, 500); // 0.5 seconds after the first button
-    }, 750); // 0.75 seconds after main content
+    }, 1000); // 1 second after main content
   });
 }
 
