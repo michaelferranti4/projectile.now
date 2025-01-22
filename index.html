@@ -29,7 +29,6 @@
   </div>
 
   <!-- Main Content Section -->
-  <!-- Initially hidden with CSS class 'hidden' -->
   <div id="main-content" class="hidden">
     <!-- Logo (image) -->
     <img
@@ -38,7 +37,7 @@
       class="title"
     />
 
-    <!-- Buttons (3D layered red). They start fully invisible via the 'button-hidden' class -->
+    <!-- Buttons (3D layered red). They start hidden so the logo doesn’t shift. -->
     <div class="buttons vertical-buttons">
       <button
         id="listen-btn"
@@ -47,6 +46,7 @@
       >
         Listen
       </button>
+
       <button
         id="join-btn"
         class="btn btn-layered-3d btn-layered-3d--red button-hidden"
@@ -56,8 +56,8 @@
       </button>
     </div>
 
-    <!-- Contact Button + Dropdown -->
-    <div class="contact-container">
+    <!-- Contact Button + Dropdown (also starts hidden) -->
+    <div id="contact-container" class="contact-container button-hidden">
       <button id="contact-toggle-btn" class="contact-btn">Contact Us</button>
       <div id="contact-info" class="hidden contact-dropdown">
         <p>Email: projectile.source@gmail.com</p>

@@ -8,45 +8,74 @@ const mainContent = document.getElementById('main-content');
 const listenBtn = document.getElementById('listen-btn');
 const joinBtn = document.getElementById('join-btn');
 
-/* Contact toggle elements */
+// Contact container & toggle
+const contactContainer = document.getElementById('contact-container');
 const contactToggleBtn = document.getElementById('contact-toggle-btn');
 const contactInfo = document.getElementById('contact-info');
 
-// Start the video halfway through
+// If the video is loaded, start it halfway
 if (introVideo) {
   introVideo.addEventListener('loadedmetadata', () => {
     introVideo.currentTime = introVideo.duration / 2;
   });
 
+  // Skip the intro if user clicks the video container
+  introVideo.addEventListener('click', skipIntroVideo);
+
+  // When the video ends, skip normally
   introVideo.addEventListener('ended', () => {
-    // Hide video
-    document.getElementById('video-container').style.display = 'none';
-    // Show main content
-    mainContent.classList.remove('hidden');
+    skipIntroVideo();
+  });
+}
 
-    // Fade in buttons:
-    // 1) Make the "listen" button visible after 1 second
+/**
+ * The function that runs after the user or natural end event
+ * (We "simulate" the same actions as if the video ended).
+ */
+function skipIntroVideo() {
+  // Remove video container
+  document.getElementById('video-container').style.display = 'none';
+  // Show main content
+  mainContent.classList.remove('hidden');
+
+  // Fade in first button (Listen) after 1s
+  setTimeout(() => {
+    listenBtn.classList.remove('button-hidden');
+    listenBtn.classList.add('button-shown');
+
+    // Fade in second button (Join) after 0.5s
     setTimeout(() => {
-      listenBtn.classList.remove('button-hidden');
-      listenBtn.classList.add('button-shown');
+      joinBtn.classList.remove('button-hidden');
+      joinBtn.classList.add('button-shown');
 
-      // 2) Then the "join" button 0.5s later
+      // Fade in Contact button 1s after the Join button
       setTimeout(() => {
-        joinBtn.classList.remove('button-hidden');
-        joinBtn.classList.add('button-shown');
-      }, 500);
-    }, 1000);
+        contactContainer.classList.remove('button-hidden');
+        contactContainer.classList.add('button-shown');
+      }, 1000);
+
+    }, 500);
+  }, 1000);
+}
+
+// Listen button -> Linktree
+if (listenBtn) {
+  listenBtn.addEventListener('click', () => {
+    window.open('https://linktr.ee/kidsmoko', '_blank');
+  });
+}
+
+// Join button -> Store Page
+if (joinBtn) {
+  joinBtn.addEventListener('click', () => {
+    window.location.href = 'store.html';
   });
 }
 
 /* Contact dropdown toggle */
 if (contactToggleBtn) {
   contactToggleBtn.addEventListener('click', () => {
-    if (contactInfo.classList.contains('hidden')) {
-      contactInfo.classList.remove('hidden');
-    } else {
-      contactInfo.classList.add('hidden');
-    }
+    contactInfo.classList.toggle('hidden');
   });
 }
 
