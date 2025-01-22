@@ -188,3 +188,68 @@ body {
   border-radius: 4px;
   color: #fff;
 }
+
+
+/* --------------------------------------------------
+   6) Store Page Grid Layout
+--------------------------------------------------- */
+.store-container {
+  display: grid;
+  /* 2 columns, 2 rows = perfect square for 4 items */
+  grid-template-columns: repeat(2, 1fr);
+  gap: 30px;
+  /* Fill up most of the screen height */
+  min-height: 80vh;
+  max-width: 1200px;
+  margin: 0 auto;
+  align-items: center;
+  justify-items: center;
+  padding: 20px;
+}
+
+/* Style each item’s layout */
+.store-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Make the images "big" */
+.store-item img {
+  width: 80%;
+  max-width: 400px;
+  height: auto;
+  margin-bottom: 10px;
+}
+
+/* Make the add-to-cart button stand out */
+.store-item button {
+  background-color: #333;
+  border: 2px solid #fff;
+  color: #fff;
+  padding: 10px 20px;
+  cursor: pointer;
+  font-size: 1rem;
+  border-radius: 5px;
+}
+
+.store-item button:hover {
+  background-color: #555;
+}
+
+/* Position the checkout button slightly below */
+.checkout-button {
+  margin-top: 20px;
+  background-color: #c00;
+  border: none;
+  color: #fff;
+  padding: 12px 24px;
+  font-size: 1rem;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.checkout-button:hover {
+  background-color: #f33;
+}
+
