@@ -1,0 +1,137 @@
+/* General Resets */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* Body */
+body {
+  font-family: Arial, sans-serif;
+  background-color: #111;
+  color: #fff;
+  text-align: center;
+  padding: 20px;
+}
+
+/* Video Container */
+#video-container {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
+}
+#intro-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Main Content */
+#main-content {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  background: #111;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.hidden {
+  display: none !important;
+}
+
+.title {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  letter-spacing: 2px;
+}
+
+.buttons {
+  margin-top: 2rem;
+}
+
+button {
+  background-color: #333;
+  color: #fff;
+  border: 2px solid #888;
+  padding: 10px 20px;
+  margin: 0 10px;
+  cursor: pointer;
+  font-size: 1rem;
+}
+
+button:hover {
+  background-color: #444;
+}
+
+/* Contact Dropdown */
+.contact-container {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+}
+.contact-btn {
+  background-color: #333;
+  padding: 8px 16px;
+  margin: 0;
+}
+.contact-dropdown {
+  background-color: #222;
+  border: 1px solid #444;
+  padding: 10px;
+  margin-top: 5px;
+  text-align: left;
+}
+
+/* Store Page */
+.store-container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-top: 2rem;
+}
+.store-item {
+  background-color: #222;
+  border: 1px solid #444;
+  margin: 1rem;
+  padding: 1rem;
+  width: 200px;
+  text-align: center;
+}
+.store-item img {
+  width: 150px;
+  height: 150px;
+  object-fit: cover;
+}
+.checkout-button {
+  margin-top: 2rem;
+  padding: 10px 20px;
+}
+
+/* Checkout Page */
+form {
+  display: flex;
+  flex-direction: column;
+  width: 300px;
+  margin: 2rem auto;
+  text-align: left;
+}
+form label {
+  margin: 10px 0 5px;
+}
+form input {
+  padding: 8px;
+  margin-bottom: 10px;
+  border: 1px solid #333;
+  background: #222;
+  color: #fff;
+}
+form button {
+  align-self: center;
+  margin-top: 1rem;
+}
