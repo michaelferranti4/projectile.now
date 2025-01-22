@@ -79,9 +79,19 @@ if (contactToggleBtn) {
   });
 }
 
+// main.js
+
 /************************************************************
  * 2) Store Page Logic
  ************************************************************/
+const itemImages = {
+  "Box of Pamphlets": "assets/pam2.jpg",
+  "A Single Trash Bag": "assets/garbo1.PNG",
+  "CD": "assets/cd1.png",
+  "Dollar Bill": "assets/dollar1.jpg"
+};
+
+// If cart is found in localStorage, parse it; otherwise, empty array
 let cart = JSON.parse(localStorage.getItem('cart')) || [];
 
 /** Adds an item to the cart array and saves it in localStorage */
@@ -92,14 +102,16 @@ function addToCart(itemName) {
   alert(`${itemName} added to cart`);
 }
 
+
 /************************************************************
  * 3) Checkout Page Logic
  ************************************************************/
+
+// The function to be called when the form is submitted
 function prepareFormData(event) {
-  // If we want to pass cart items to Netlify forms:
   const hiddenCartField = document.getElementById('cart-items');
-  if (hiddenCartField) {
-    hiddenCartField.value = cart.join(', ');
-  }
-  // The form will then submit to Netlify
+  const savedCart = JSON.parse(localStorage.getItem("cart")) || [];
+
+  // Put items into a comma-separated string for Netlify
+  hiddenCartField.value = savedCart.join(", ");
 }

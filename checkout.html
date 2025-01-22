@@ -8,8 +8,8 @@
 </head>
 <body>
   <h1>Join Us</h1>
-  <!-- Netlify Forms: data-netlify="true" ensures Netlify will capture submissions -->
-  <!-- The 'action' redirects to thank-you.html on successful submission -->
+
+  <!-- Netlify Form -->
   <form
     name="joinForm"
     method="POST"
@@ -40,38 +40,55 @@
     <button type="submit">Submit</button>
   </form>
 
-  <!-- Cart Display Below Form -->
+  <!-- Cart Display Section: We'll place this "in the middle" via CSS -->
   <div id="cart-display-container">
     <h2>Your Cart Items</h2>
-    <ul id="cart-display"></ul>
+    <div id="cart-items-container" class="cart-row">
+      <!-- Individual item cards will be appended here by JS -->
+    </div>
   </div>
 
   <script src="main.js"></script>
-
   <script>
-    // 1) Display the Cart on Page Load
+    // We'll do this on DOM load to populate the cart row
     document.addEventListener("DOMContentLoaded", () => {
-      const cartList = document.getElementById("cart-display");
+      const cartRow = document.getElementById("cart-items-container");
       const savedCart = JSON.parse(localStorage.getItem("cart")) || [];
 
-      // Clear any existing items in case user revisits
-      cartList.innerHTML = "";
+      // Use the same itemImages dictionary from main.js
+      // If needed, you can re-declare it here or ensure it's global
+      const itemImages = {
+        "Box of Pamphlets": "assets/pam2.jpg",
+        "A Single Trash Bag": "assets/garbo1.PNG",
+        "CD": "assets/cd1.png",
+        "Dollar Bill": "assets/dollar1.jpg"
+      };
 
-      // Create list items from cart array
-      savedCart.forEach((item) => {
-        const li = document.createElement("li");
-        li.textContent = item;
-        cartList.appendChild(li);
+      // Clear any existing items
+      cartRow.innerHTML = "";
+
+      // Create a "card" for each item
+      savedCart.forEach(itemName => {
+        const card = document.createElement("div");
+        card.classList.add("cart-item");
+
+        // Create image element
+        const img = document.createElement("img");
+        img.src = itemImages[itemName] || ""; // fallback if not found
+        img.alt = itemName;
+
+        // Create name label
+        const nameLabel = document.createElement("p");
+        nameLabel.textContent = itemName;
+
+        // Append to card
+        card.appendChild(img);
+        card.appendChild(nameLabel);
+
+        // Append card to the container row
+        cartRow.appendChild(card);
       });
     });
-
-    // 2) On form submission, populate hidden input with cart items
-    function prepareFormData(event) {
-      const hiddenCartField = document.getElementById('cart-items');
-      const savedCart = JSON.parse(localStorage.getItem("cart")) || [];
-      hiddenCartField.value = savedCart.join(", ");
-      // The form then submits to Netlify
-    }
   </script>
 </body>
 </html>

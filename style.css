@@ -253,3 +253,35 @@ body {
   background-color: #f33;
 }
 
+
+/* Cart display container styles */
+#cart-display-container {
+  margin-top: 30px; /* some spacing below the form */
+}
+
+/* The row container */
+.cart-row {
+  display: flex;
+  flex-wrap: wrap; /* wraps to new line if there are many items */
+  justify-content: center; /* center them horizontally */
+  gap: 20px; /* spacing between items */
+}
+
+/* Each item card */
+.cart-item {
+  background-color: #222;
+  border: 2px solid #fff;
+  border-radius: 5px;
+  padding: 10px;
+  width: 150px; /* fixed width for each card */
+  text-align: center;
+}
+
+/* The images in the cart row */
+.cart-item img {
+  width: 100%;
+  height: auto;
+  margin-bottom: 5px;
+}
+
+
