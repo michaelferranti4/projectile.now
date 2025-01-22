@@ -69,8 +69,7 @@ body {
 
 /* Cool button design */
 button {
-  background: linear-gradient(to right, #4caf50, #8bc34a); /* Gradient background */
-  color: #fff;
+    background: linear-gradient(to right, #ff0000, #ff6347);  color: #fff;
   border: none;
   padding: 15px 25px;
   font-size: 1.2rem;
