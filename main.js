@@ -20,7 +20,7 @@ if (introVideo) {
     // Show main content
     mainContent.classList.remove('hidden');
 
-    // Initially hide the buttons to control their appearance manually
+    // Initially hide the buttons
     listenBtn.style.display = 'none';
     joinBtn.style.display = 'none';
 
@@ -29,8 +29,8 @@ if (introVideo) {
       listenBtn.style.display = 'block'; // Show Listen button
       setTimeout(() => {
         joinBtn.style.display = 'block'; // Show Join button
-      }, 500); // 0.5 seconds after the Listen button
-    }, 1000); // 1 second after the main content
+      }, 500); // 0.5 seconds after Listen
+    }, 1000); // 1 second after main content
   });
 }
 
