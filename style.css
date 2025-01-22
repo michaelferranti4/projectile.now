@@ -1,3 +1,7 @@
+/* -------------------------------------------------
+   Base / Layout
+   ------------------------------------------------- */
+
 /* General Resets */
 * {
   margin: 0;
@@ -42,7 +46,7 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  z-index: 10; /* Ensure it's above the video only after transition */
+  z-index: 10; /* Shown after video ends */
 }
 
 .hidden {
@@ -52,7 +56,7 @@ body {
 /* Logo Image Replacing Title */
 .title {
   width: 80%;         /* Make sure the image is large */
-  max-width: 600px;   /* Set a max width */
+  max-width: 600px;   /* Set a max width if needed */
   height: auto;
   margin-bottom: 2rem;
 }
@@ -65,58 +69,82 @@ body {
 .vertical-buttons {
   display: flex;
   flex-direction: column; /* Align buttons vertically */
-  gap: 10px; /* Add spacing between buttons */
+  gap: 10px;
 }
 
-/* 3D layered buttons from enjeck/btns (red variant) -------------------------
-   You can either copy the relevant classes from the repo or link them in your project.
-   Below is a minimal example. Adjust if you have a separate btns.css.
-----------------------------------------------------------------------------*/
+/* -------------------------------------------------
+   3D Red Layered Button (Exact Code from Repo)
+   ------------------------------------------------- */
 
-/* Basic 3D layering structure */
-.btn {
-  display: inline-block;
-  position: relative;
-  font-size: 1rem;
-  padding: 15px 25px;
-  text-decoration: none;
-  cursor: pointer;
-  border: none;
-  outline: none;
-  transition: transform 0.3s, box-shadow 0.3s;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+/* The core 3D layering for any .btn-layered-3d button */
+.btn-layered-3d,
+.btn-layered-3d > *,
+.btn-layered-3d > *::before,
+.btn-layered-3d > *::after {
+  box-sizing: border-box;
 }
 
 .btn-layered-3d {
-  perspective: 1000px;
+  width: 180px;
+  position: relative;
+  display: inline-block;
+  cursor: pointer;
+  outline: none;
+  border: 0;
+  vertical-align: middle;
+  text-decoration: none;
+  font-size: inherit; /* Inherit from parent if desired */
+  font-family: inherit;
+  font-weight: 600;
+  text-transform: uppercase;
+  padding: 1.15em 2em;
+  border-radius: 0.75em;
   transform-style: preserve-3d;
+  transition: transform 150ms cubic-bezier(0, 0, 0.58, 1),
+              background 150ms cubic-bezier(0, 0, 0.58, 1);
 }
 
-.btn-layered-3d::before,
-.btn-layered-3d::after {
-  content: '';
+.btn-layered-3d::before {
   position: absolute;
-  left: 0;
+  content: '';
   width: 100%;
   height: 100%;
-  z-index: -1;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-radius: inherit;
+  transform: translate3d(0, 0.75em, -1em);
+  transition: transform 150ms cubic-bezier(0, 0, 0.58, 1),
+              box-shadow 150ms cubic-bezier(0, 0, 0.58, 1);
 }
 
+.btn-layered-3d:hover {
+  transform: translate(0, 0.25em);
+}
+
+.btn-layered-3d:hover::before {
+  transform: translate3d(0, 0.5em, -1em);
+}
+
+/* Red variant */
 .btn-layered-3d--red {
-  background: #F00; /* top visible layer */
-  color: #fff;
+  color: hsl(353, 86%, 54%);       /* Text color */
+  background: hsl(353, 86%, 94%);  /* Top surface color */
+  border: 2px solid hsl(353, 86%, 54%);
 }
 
-/* Feel free to enhance these with more “layers” if you like.
-   This is just a simplified version.
----------------------------------------------------------------------------*/
-
-.btn:hover {
-  transform: scale(1.05);
-  box-shadow: 0 6px 8px rgba(0, 0, 0, 0.4);
+.btn-layered-3d--red::before {
+  background: hsl(353, 86%, 74%); /* The "layer" underneath */
+  box-shadow:
+    0 0 0 2px hsl(353, 86%, 54%),   /* Crisp boundary around the underside */
+    0 0.625em 0 0 hsl(353, 86%, 94%);
 }
 
-/* Contact text in top right corner */
+/* -------------------------------------------------
+   Contact Info
+   ------------------------------------------------- */
+
 .contact-container {
   position: absolute;
   top: 20px;
@@ -128,4 +156,3 @@ body {
   color: #ccc;
   text-align: right;
 }
-

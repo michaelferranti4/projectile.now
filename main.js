@@ -9,7 +9,7 @@ const joinBtn = document.getElementById('join-btn');
 // Start video halfway through
 if (introVideo) {
   introVideo.addEventListener('loadedmetadata', () => {
-    // Force the video to start from the halfway point every time
+    // Force the video to start from halfway point every time
     introVideo.currentTime = introVideo.duration / 2;
   });
 
