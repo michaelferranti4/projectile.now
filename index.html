@@ -30,21 +30,37 @@
 
   <!-- Main Content Section -->
   <div id="main-content" class="hidden">
-    <h1 class="title">PROJECTILE</h1>
+    <!-- Replaced the PROJECTILE heading with a large logo image -->
+    <img
+      src="assets/projectile-logo-2-white.png"
+      alt="Projectile Logo"
+      class="title"
+    />
 
-    <!-- Buttons -->
+    <!-- Buttons (using the 3D red layered buttons from enjeck/btns) -->
     <div class="buttons vertical-buttons">
-      <button id="listen-btn" aria-label="Listen to our content">Listen</button>
-      <button id="join-btn" aria-label="Join our platform">Join</button>
+      <button
+        id="listen-btn"
+        class="btn btn-layered-3d btn-layered-3d--red"
+        aria-label="Listen to our content"
+      >
+        Listen
+      </button>
+
+      <button
+        id="join-btn"
+        class="btn btn-layered-3d btn-layered-3d--red"
+        aria-label="Join our platform"
+      >
+        Join
+      </button>
     </div>
 
-    <!-- Contact -->
+    <!-- Contact text in the top right corner -->
     <div class="contact-container">
-      <button id="contact-toggle-btn" class="contact-btn">Contact Us</button>
-      <div id="contact-info" class="hidden contact-dropdown">
-        <p>Email: projectile.source@gmail.com</p>
-        <p>Instagram: @_projectile_</p>
-      </div>
+      <p class="contact-text">
+        Email: projectile.source@gmail.com &nbsp;|&nbsp; Instagram: @_projectile_
+      </p>
     </div>
   </div>
 

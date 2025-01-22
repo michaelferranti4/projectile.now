@@ -3,15 +3,14 @@
  ************************************************************/
 const introVideo = document.getElementById('intro-video');
 const mainContent = document.getElementById('main-content');
-const contactToggleBtn = document.getElementById('contact-toggle-btn');
-const contactInfo = document.getElementById('contact-info');
 const listenBtn = document.getElementById('listen-btn');
 const joinBtn = document.getElementById('join-btn');
 
 // Start video halfway through
 if (introVideo) {
   introVideo.addEventListener('loadedmetadata', () => {
-    introVideo.currentTime = introVideo.duration / 2; // Start at halfway point
+    // Force the video to start from the halfway point every time
+    introVideo.currentTime = introVideo.duration / 2;
   });
 
   introVideo.addEventListener('ended', () => {
@@ -26,36 +25,11 @@ if (introVideo) {
 
     // Delay the button appearances
     setTimeout(() => {
-      listenBtn.style.display = 'block'; // Show Listen button
+      listenBtn.style.display = 'inline-block'; // Show Listen button
       setTimeout(() => {
-        joinBtn.style.display = 'block'; // Show Join button
+        joinBtn.style.display = 'inline-block'; // Show Join button
       }, 500); // 0.5 seconds after Listen
     }, 1000); // 1 second after main content
-  });
-}
-
-// Toggle contact dropdown
-if (contactToggleBtn) {
-  contactToggleBtn.addEventListener('click', () => {
-    if (contactInfo.classList.contains('hidden')) {
-      contactInfo.classList.remove('hidden');
-    } else {
-      contactInfo.classList.add('hidden');
-    }
-  });
-}
-
-// Listen button -> Linktree
-if (listenBtn) {
-  listenBtn.addEventListener('click', () => {
-    window.open('YOUR_LINKTREE_URL', '_blank'); // Replace with your actual Linktree link
-  });
-}
-
-// Join button -> Store Page
-if (joinBtn) {
-  joinBtn.addEventListener('click', () => {
-    window.location.href = 'store.html';
   });
 }
 
