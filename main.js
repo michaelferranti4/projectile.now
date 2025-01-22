@@ -20,13 +20,17 @@ if (introVideo) {
     // Show main content
     mainContent.classList.remove('hidden');
 
+    // Initially hide the buttons to control their appearance manually
+    listenBtn.style.display = 'none';
+    joinBtn.style.display = 'none';
+
     // Delay the button appearances
     setTimeout(() => {
-      listenBtn.style.display = 'block'; // Changed to 'block' for vertical layout
+      listenBtn.style.display = 'block'; // Show Listen button
       setTimeout(() => {
-        joinBtn.style.display = 'block'; // Changed to 'block' for vertical layout
-      }, 500); // 0.5 seconds after the first button
-    }, 1000); // 1 second after main content
+        joinBtn.style.display = 'block'; // Show Join button
+      }, 500); // 0.5 seconds after the Listen button
+    }, 1000); // 1 second after the main content
   });
 }
 
