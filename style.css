@@ -14,20 +14,6 @@ body {
   padding: 20px;
 }
 
-#header {
-  position: fixed;
-  top: 20px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 100;
-}
-
-#logo {
-  width: 200px; /* Adjust width as needed */
-  height: auto;
-}
-
-
 /* Video Container */
 #video-container {
   position: relative;
@@ -36,6 +22,7 @@ body {
   overflow: hidden;
   z-index: 1000; /* Ensure the video is above other elements */
 }
+
 #intro-video {
   width: 100%;
   height: 100%;
@@ -45,53 +32,67 @@ body {
 /* Main Content */
 #main-content {
   position: absolute;
-  top: 100px; /* Adjust based on header height */
+  top: 0;
   left: 0;
   width: 100%;
-  height: calc(100vh - 100px); /* Account for header height */
+  height: 100vh;
+  background: #111;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  z-index: 10;
+  z-index: 10; /* Ensure it's above the video only after transition */
 }
-
-.vertical-buttons {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
 
 .hidden {
   display: none !important;
 }
 
+/* Adjust Title Header */
 .title {
-  font-size: 3rem;
-  margin-bottom: 1rem;
-  letter-spacing: 2px;
+  font-size: 5rem; /* Make it much larger */
+  text-align: center; /* Ensure the header is centered */
+  margin-top: 20px;
+  letter-spacing: 3px;
 }
 
+/* Buttons */
 .buttons {
   margin-top: 2rem;
 }
 
+.vertical-buttons {
+  display: flex;
+  flex-direction: column; /* Align buttons vertically */
+  gap: 10px; /* Add spacing between buttons */
+}
 
-
+/* Cool button design */
 button {
-  background-color: #333;
+  background: linear-gradient(to right, #4caf50, #8bc34a); /* Gradient background */
   color: #fff;
-  border: 2px solid #888;
-  padding: 10px 20px;
-  margin: 0 auto; /* Center align buttons */
+  border: none;
+  padding: 15px 25px;
+  font-size: 1.2rem;
+  border-radius: 25px;
   cursor: pointer;
-  font-size: 1rem;
-  width: 200px; /* Ensure consistent button width */
+  transition: transform 0.3s, box-shadow 0.3s;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
 }
 
 button:hover {
-  background-color: #444;
+  transform: scale(1.05); /* Add subtle scale effect on hover */
+  box-shadow: 0 6px 8px rgba(0, 0, 0, 0.4);
+}
+
+/* Prevent first button from moving */
+#listen-btn {
+  position: relative; /* Ensure it's positioned independently */
+}
+
+#join-btn {
+  position: relative;
+  top: 0;
 }
 
 /* Contact Dropdown */
@@ -100,11 +101,13 @@ button:hover {
   top: 20px;
   right: 20px;
 }
+
 .contact-btn {
   background-color: #333;
   padding: 8px 16px;
   margin: 0;
 }
+
 .contact-dropdown {
   background-color: #222;
   border: 1px solid #444;
