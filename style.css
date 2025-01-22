@@ -1,8 +1,8 @@
-/* -------------------------------------------------
-   Base / Layout
-   ------------------------------------------------- */
+/* ---------------------------------------
+   1) Base / Layout
+---------------------------------------- */
 
-/* General Resets */
+/* Reset */
 * {
   margin: 0;
   padding: 0;
@@ -53,30 +53,43 @@ body {
   display: none !important;
 }
 
-/* Logo Image Replacing Title */
+/* Logo Image */
 .title {
   width: 80%;         /* Make sure the image is large */
   max-width: 600px;   /* Set a max width if needed */
   height: auto;
-  margin-bottom: 2rem;
+  margin-bottom: 2rem; /* Space below the logo */
 }
 
-/* Buttons container */
+/* ---------------------------------------
+   2) Buttons + Fade-in
+---------------------------------------- */
+
 .buttons {
+  /* This container is always present, ensuring the logo doesn't shift
+     when the buttons fade in. */
   margin-top: 1rem;
-}
-
-.vertical-buttons {
   display: flex;
-  flex-direction: column; /* Align buttons vertically */
+  flex-direction: column;
   gap: 10px;
+  align-items: center;
 }
 
-/* -------------------------------------------------
-   3D Red Layered Button (Exact Code from Repo)
-   ------------------------------------------------- */
+/* Our 3D Red buttons start fully invisible; no layout jump occurs
+   because they remain in normal flow, just transparent. */
+.button-hidden {
+  opacity: 0;
+}
 
-/* The core 3D layering for any .btn-layered-3d button */
+.button-shown {
+  opacity: 1;
+  transition: opacity 0.5s ease-in;
+}
+
+/* ---------------------------------------
+   3) 3D Red Layered Button (from repo)
+---------------------------------------- */
+
 .btn-layered-3d,
 .btn-layered-3d > *,
 .btn-layered-3d > *::before,
@@ -93,7 +106,7 @@ body {
   border: 0;
   vertical-align: middle;
   text-decoration: none;
-  font-size: inherit; /* Inherit from parent if desired */
+  font-size: inherit; /* or set a custom size if you prefer */
   font-family: inherit;
   font-weight: 600;
   text-transform: uppercase;
@@ -135,15 +148,15 @@ body {
 }
 
 .btn-layered-3d--red::before {
-  background: hsl(353, 86%, 74%); /* The "layer" underneath */
+  background: hsl(353, 86%, 74%);
   box-shadow:
-    0 0 0 2px hsl(353, 86%, 54%),   /* Crisp boundary around the underside */
+    0 0 0 2px hsl(353, 86%, 54%),
     0 0.625em 0 0 hsl(353, 86%, 94%);
 }
 
-/* -------------------------------------------------
-   Contact Info
-   ------------------------------------------------- */
+/* ---------------------------------------
+   4) Contact Dropdown
+---------------------------------------- */
 
 .contact-container {
   position: absolute;
@@ -151,8 +164,21 @@ body {
   right: 20px;
 }
 
-.contact-text {
-  font-size: 0.9rem;
-  color: #ccc;
-  text-align: right;
+.contact-btn {
+  background-color: #333;
+  padding: 8px 16px;
+  margin: 0;
+  border: none;
+  color: #fff;
+  cursor: pointer;
+  border-radius: 5px;
+}
+
+.contact-dropdown {
+  background-color: #222;
+  border: 1px solid #444;
+  padding: 10px;
+  margin-top: 5px;
+  text-align: left;
+  border-radius: 4px;
 }

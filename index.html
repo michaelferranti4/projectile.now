@@ -29,37 +29,40 @@
   </div>
 
   <!-- Main Content Section -->
+  <!-- Initially hidden with CSS class 'hidden' -->
   <div id="main-content" class="hidden">
-    <!-- Large Logo Image -->
+    <!-- Logo (image) -->
     <img
       src="assets/projectile-logo-2-white.png"
       alt="Projectile Logo"
       class="title"
     />
 
-    <!-- Buttons (3D Layered Red) -->
+    <!-- Buttons (3D layered red). They start fully invisible via the 'button-hidden' class -->
     <div class="buttons vertical-buttons">
       <button
         id="listen-btn"
-        class="btn btn-layered-3d btn-layered-3d--red"
+        class="btn btn-layered-3d btn-layered-3d--red button-hidden"
         aria-label="Listen to our content"
       >
         Listen
       </button>
       <button
         id="join-btn"
-        class="btn btn-layered-3d btn-layered-3d--red"
+        class="btn btn-layered-3d btn-layered-3d--red button-hidden"
         aria-label="Join our platform"
       >
         Join
       </button>
     </div>
 
-    <!-- Contact Info (top-right) -->
+    <!-- Contact Button + Dropdown -->
     <div class="contact-container">
-      <p class="contact-text">
-        Email: projectile.source@gmail.com &nbsp;|&nbsp; Instagram: @_projectile_
-      </p>
+      <button id="contact-toggle-btn" class="contact-btn">Contact Us</button>
+      <div id="contact-info" class="hidden contact-dropdown">
+        <p>Email: projectile.source@gmail.com</p>
+        <p>Instagram: @_projectile_</p>
+      </div>
     </div>
   </div>
 
