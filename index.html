@@ -4,10 +4,14 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Projectile</title>
+  <meta name="description" content="Welcome to Projectile - A platform for creativity and inspiration." />
+  <meta property="og:title" content="Projectile" />
+  <meta property="og:description" content="A platform for creativity and inspiration." />
+  <meta property="og:image" content="assets/preview-image.png" />
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <!-- Video Preloader -->
+  <!-- Video Section -->
   <div id="video-container">
     <video
       id="intro-video"
@@ -15,20 +19,26 @@
       autoplay
       muted
       playsinline
+      preload="auto"
     >
-      Your browser does not support the video tag.
+      <p>
+        Your browser does not support the video tag. Please
+        <a href="assets/introvideo.mp4" download>download the video</a>.
+      </p>
     </video>
   </div>
 
-  <!-- Main Content -->
-  <div id="main-content">
+  <!-- Main Content Section -->
+  <div id="main-content" class="hidden">
     <h1 class="title">PROJECTILE</h1>
 
+    <!-- Buttons -->
     <div class="buttons">
-      <button id="listen-btn">Listen</button>
-      <button id="join-btn">Join</button>
+      <button id="listen-btn" aria-label="Listen to our content">Listen</button>
+      <button id="join-btn" aria-label="Join our platform">Join</button>
     </div>
 
+    <!-- Contact -->
     <div class="contact-container">
       <button id="contact-toggle-btn" class="contact-btn">Contact Us</button>
       <div id="contact-info" class="hidden contact-dropdown">
