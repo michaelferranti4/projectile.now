@@ -82,11 +82,13 @@ if (contactToggleBtn) {
 /************************************************************
  * 2) Store Page Logic
  ************************************************************/
-let cart = [];
+let cart = JSON.parse(localStorage.getItem('cart')) || [];
 
-/** Adds an item to the cart array */
+/** Adds an item to the cart array and saves it in localStorage */
 function addToCart(itemName) {
   cart.push(itemName);
+  // Save to localStorage so we still have the cart on checkout.html
+  localStorage.setItem('cart', JSON.stringify(cart));
   alert(`${itemName} added to cart`);
 }
 

@@ -34,12 +34,44 @@
     <label for="phone">Phone (optional):</label>
     <input type="text" id="phone" name="phone" />
 
-    <!-- Hidden field to store cart items (if desired) -->
+    <!-- Hidden field to store cart items -->
     <input type="hidden" id="cart-items" name="cartItems" value="" />
 
     <button type="submit">Submit</button>
   </form>
 
+  <!-- Cart Display Below Form -->
+  <div id="cart-display-container">
+    <h2>Your Cart Items</h2>
+    <ul id="cart-display"></ul>
+  </div>
+
   <script src="main.js"></script>
+
+  <script>
+    // 1) Display the Cart on Page Load
+    document.addEventListener("DOMContentLoaded", () => {
+      const cartList = document.getElementById("cart-display");
+      const savedCart = JSON.parse(localStorage.getItem("cart")) || [];
+
+      // Clear any existing items in case user revisits
+      cartList.innerHTML = "";
+
+      // Create list items from cart array
+      savedCart.forEach((item) => {
+        const li = document.createElement("li");
+        li.textContent = item;
+        cartList.appendChild(li);
+      });
+    });
+
+    // 2) On form submission, populate hidden input with cart items
+    function prepareFormData(event) {
+      const hiddenCartField = document.getElementById('cart-items');
+      const savedCart = JSON.parse(localStorage.getItem("cart")) || [];
+      hiddenCartField.value = savedCart.join(", ");
+      // The form then submits to Netlify
+    }
+  </script>
 </body>
 </html>
