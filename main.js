@@ -61,7 +61,7 @@ function skipIntroVideo() {
 // Listen button -> Linktree
 if (listenBtn) {
   listenBtn.addEventListener('click', () => {
-    window.open('https://linktr.ee/kidsmoko', '_blank');
+    window.open('https://sparta.ffm.to/supersonics', '_blank');
   });
 }
 
