@@ -12,12 +12,14 @@
       margin: 20px;
       padding: 0;
       box-sizing: border-box;
-      background-color: #f4f4f4;
+      background-color: #000; /* Set background to black */
+      color: #fff; /* Text color for readability */
     }
 
     h1 {
       text-align: center;
       margin-bottom: 20px;
+      color: #fff;
     }
 
     /* Form container */
@@ -32,6 +34,7 @@
     label {
       font-weight: bold;
       margin-bottom: 5px;
+      color: #fff;
     }
 
     input[type="text"],
@@ -39,8 +42,14 @@
       width: 100%;
       padding: 8px;
       font-size: 16px;
-      border: 1px solid #ccc;
+      border: 1px solid #555;
       border-radius: 5px;
+      background-color: #222;
+      color: #fff;
+    }
+
+    input::placeholder {
+      color: #bbb;
     }
 
     button {
