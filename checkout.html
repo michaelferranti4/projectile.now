@@ -6,24 +6,27 @@
   <title>Checkout</title>
   <link rel="stylesheet" href="style.css" />
   <style>
-    /* Basic mobile-friendly styles */
+    /* General styles */
     body {
       font-family: Arial, sans-serif;
       margin: 20px;
       padding: 0;
       box-sizing: border-box;
+      background-color: #f4f4f4;
     }
 
+    h1 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    /* Form container */
     form {
       display: flex;
       flex-direction: column;
-      gap: 10px;
+      gap: 15px;
       max-width: 400px;
       margin: 0 auto;
-      padding: 20px;
-      border: 1px solid #ddd;
-      border-radius: 8px;
-      background-color: #f9f9f9;
     }
 
     label {
@@ -32,21 +35,23 @@
     }
 
     input[type="text"],
-    input[type="email"],
-    input[type="submit"],
-    button {
+    input[type="email"] {
       width: 100%;
-      padding: 10px;
+      padding: 8px;
       font-size: 16px;
       border: 1px solid #ccc;
       border-radius: 5px;
     }
 
     button {
+      padding: 10px;
+      font-size: 16px;
       background-color: #007bff;
       color: #fff;
-      cursor: pointer;
       border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      text-align: center;
     }
 
     button:hover {
@@ -77,12 +82,8 @@
       margin-bottom: 5px;
     }
 
-    /* Responsive layout for smaller screens */
+    /* Responsive layout */
     @media (max-width: 600px) {
-      form {
-        padding: 15px;
-      }
-
       input[type="text"],
       input[type="email"],
       button {
@@ -133,7 +134,7 @@
     <button type="submit">Submit</button>
   </form>
 
-  <!-- Cart Display Section: We'll place this "in the middle" via CSS -->
+  <!-- Cart Display Section -->
   <div id="cart-display-container">
     <h2>Your Cart Items</h2>
     <div id="cart-items-container" class="cart-row">
@@ -143,7 +144,6 @@
 
   <script src="main.js"></script>
   <script>
-    // We'll do this on DOM load to populate the cart row
     document.addEventListener("DOMContentLoaded", () => {
       const cartRow = document.getElementById("cart-items-container");
       const savedCart = JSON.parse(localStorage.getItem("cart")) || [];
@@ -155,28 +155,22 @@
         "Dollar Bill": "assets/dollar1.jpg"
       };
 
-      // Clear any existing items
       cartRow.innerHTML = "";
 
-      // Create a "card" for each item
       savedCart.forEach(itemName => {
         const card = document.createElement("div");
         card.classList.add("cart-item");
 
-        // Create image element
         const img = document.createElement("img");
-        img.src = itemImages[itemName] || ""; // fallback if not found
+        img.src = itemImages[itemName] || "";
         img.alt = itemName;
 
-        // Create name label
         const nameLabel = document.createElement("p");
         nameLabel.textContent = itemName;
 
-        // Append to card
         card.appendChild(img);
         card.appendChild(nameLabel);
 
-        // Append card to the container row
         cartRow.appendChild(card);
       });
     });
