@@ -61,7 +61,8 @@ function skipIntroVideo() {
 // Listen button -> Linktree
 if (listenBtn) {
   listenBtn.addEventListener('click', () => {
-    window.open('sparta.ffm.to/spaceaspirations', '_blank');
+    window.open('https://sparta.ffm.to/spaceaspirations', '_blank');
+
 
   });
 }
