@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Desert Cab Dash</title>
+    <link rel="stylesheet" href="game.css" />
+
+    <!-- Brython runtime (from CDN) -->
+    <script
+      type="text/javascript"
+      src="https://cdn.jsdelivr.net/npm/brython@3.10.12/brython.min.js"
+    ></script>
+  </head>
+  <body onload="brython()">
+    <!-- Canvas for the game -->
+    <canvas id="gameCanvas" width="800" height="600"></canvas>
+
+    <!-- The Python game logic (Brython) -->
+    <script type="text/python" src="game.py"></script>
+  </body>
+</html>

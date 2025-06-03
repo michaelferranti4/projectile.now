@@ -74,6 +74,14 @@ if (joinBtn) {
   });
 }
 
+const playGameBtn = document.getElementById("play-game-btn");
+if (playGameBtn) {
+  playGameBtn.addEventListener("click", () => {
+    // Change this path if you put game.html in a subfolder.
+    window.location.href = "game.html";
+  });
+}
+
 /* Contact dropdown toggle */
 if (contactToggleBtn) {
   contactToggleBtn.addEventListener('click', () => {
