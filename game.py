@@ -386,7 +386,7 @@ def restart():
     # Immediately draw the first frame
     draw_everything()
 
-
+#change
 # === Input Handling ===
 def on_keydown(evt):
     """Left/Right to switch lanes; R to restart if game is over."""
