@@ -89,11 +89,13 @@
       let touchStartX = null;
       let touchStartY = null;
       document.addEventListener('touchstart', (e) => {
+        e.preventDefault();
         const t = e.changedTouches[0];
         touchStartX = t.screenX;
         touchStartY = t.screenY;
-      });
+      }, { passive: false });
       document.addEventListener('touchend', (e) => {
+        e.preventDefault();
         if (touchStartX === null || touchStartY === null) return;
         const t = e.changedTouches[0];
         const dx = t.screenX - touchStartX;
@@ -121,7 +123,7 @@
         }
         touchStartX = null;
         touchStartY = null;
-      });
+      }, { passive: false });
     </script>
   </body>
 </html>
