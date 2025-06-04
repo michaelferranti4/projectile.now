@@ -49,33 +49,19 @@
     <script>
       const startBtn = document.getElementById('start-btn');
       const music = document.getElementById('bg-music');
-      let playRequested = false;
 
       startBtn.addEventListener('click', () => {
-        // Force the audio to load if it isn’t already
-        music.load();
-
-        // Try to play immediately on user gesture
-        const attempt = music.play();
-        if (attempt) {
-          attempt.catch(() => {
-            // If it fails (buffering not ready), wait for canplaythrough
-            playRequested = true;
-          });
-        }
+        // Directly play() on click—no .load(), no promise-catch logic here.
+        // This one line is the “user gesture” that Chrome recognizes.
+        music.play().catch((err) => {
+          // If it still fails, log the error so we can debug (CORS? invalid URL?)
+          console.warn("Audio play() failed:", err);
+        });
 
         if (window.start_game) {
           window.start_game();
         }
         document.getElementById('start-overlay').style.display = 'none';
-      });
-
-      // Once the audio is buffered enough to play, retry if user already clicked
-      music.addEventListener('canplaythrough', () => {
-        if (playRequested && music.paused) {
-          music.play().catch(() => {});
-          playRequested = false;
-        }
       });
     </script>
 
