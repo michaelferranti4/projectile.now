@@ -16,23 +16,14 @@
     ></script>
 
     <style>
-      /* (Optional) on-screen debug box for errors */
-      #debug {
-        position: absolute;
-        bottom: 0;
-        left: 0;
-        width: 100%;
-        max-height: 100px;
-        overflow-y: auto;
-        background: rgba(0, 0, 0, 0.7);
-        color: #0f0;
-        font-family: monospace;
-        font-size: 12px;
-        padding: 5px;
-        box-sizing: border-box;
+      /* No debug box—canvas can occupy full height */
+      body {
+        margin: 0;
+        padding: 0;
       }
       #gameCanvas {
-        margin-bottom: 100px; /* make room for #debug */
+        display: block;
+        margin: 0 auto;
       }
     </style>
   </head>
@@ -60,19 +51,8 @@
       </button>
     </div>
 
-    <!--
-      Background music: Fix pointing to local file “smoko.mp3”
-      (make sure smoko.mp3 is in the same folder as this HTML)
-    -->
-    <audio
-      id="bg-music"
-      src="cab.mp3"
-      loop
-      preload="auto"
-      controls
-      onerror="debugLog('Audio ERROR: failed to load src.');"
-      oncanplaythrough="debugLog('Audio is buffered (canplaythrough).');"
-    ></audio>
+    <!-- Background music: local file “cab.mp3” -->
+    <audio id="bg-music" src="cab.mp3" loop preload="auto"></audio>
 
     <!-- Canvas for the game -->
     <canvas id="gameCanvas" width="800" height="600"></canvas>
@@ -80,73 +60,32 @@
     <!-- The Python game logic (Brython) -->
     <script type="text/python" src="game.py"></script>
 
-    <!-- On-screen debug box (so you don’t need F12) -->
-    <div id="debug">➤ Debug log will appear here…</div>
-
     <script>
-      // Helper to write messages into the #debug div
-      function debugLog(msg) {
-        const dbg = document.getElementById('debug');
-        const line = document.createElement('div');
-        line.textContent = '• ' + msg;
-        dbg.appendChild(line);
-        dbg.scrollTop = dbg.scrollHeight;
-      }
-
       const startBtn = document.getElementById('start-btn');
       const music = document.getElementById('bg-music');
 
       startBtn.addEventListener('click', () => {
-        // Clear previous debug messages
-        document.getElementById('debug').innerHTML =
-          '➤ Debug log will appear here…';
+        // Play audio on click (synchronous user gesture)
+        music.play().catch(() => {
+          // If direct play() is blocked, do muted fallback
+          music.muted = true;
+          music
+            .play()
+            .then(() => {
+              music.currentTime = 0;
+              music.muted = false;
+              return music.play();
+            })
+            .catch(() => {});
+        });
 
-        // 1) Try synchronous play() (user gesture)
-        music
-          .play()
-          .then(() => {
-            debugLog('Audio.play() succeeded – should hear Smoko now.');
-          })
-          .catch((err) => {
-            debugLog('Audio.play() rejected: ' + err.name + ' – ' + err.message);
-            debugLog('Attempting muted fallback…');
-
-            // 2) Muted fallback to unlock audio
-            music.muted = true;
-            music
-              .play()
-              .then(() => {
-                debugLog('Muted play() succeeded; unmuting…');
-                music.currentTime = 0;
-                music.muted = false;
-                return music.play();
-              })
-              .then(() => {
-                debugLog('Unmuted play() succeeded – Smoko is playing.');
-              })
-              .catch((err2) => {
-                debugLog(
-                  'Muted fallback also failed: ' + err2.name + ' – ' + err2.message
-                );
-              });
-          });
-
-        // Start Brython game loop
         if (window.start_game) {
           window.start_game();
         }
         document.getElementById('start-overlay').style.display = 'none';
       });
 
-      // Optional: log built-in control events
-      music.addEventListener('play', () => debugLog('Event: play fired.'));
-      music.addEventListener('pause', () => debugLog('Event: pause fired.'));
-      music.addEventListener('waiting', () => debugLog('Event: waiting (buffering).'));
-      music.addEventListener('error', () => debugLog('Event: error fired.'));
-    </script>
-
-    <!-- Swipe controls for mobile -->
-    <script>
+      // Swipe controls for mobile
       let touchStartX = null;
       let touchStartY = null;
       document.addEventListener('touchstart', (e) => {
