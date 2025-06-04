@@ -15,8 +15,8 @@
       <button id="start-btn" style="font-size:24px;padding:10px 20px;">Start Game</button>
     </div>
 
-    <!-- Background music (user activated to satisfy autoplay policies) -->
-    <audio id="bg-music" src="https://drive.google.com/uc?export=download&id=1RPz00691DuQKyLEPikXoXdc7745l6S6w" loop preload="auto"></audio>
+    <!-- Background music. Using the smaller MP3 hosted on Google Drive -->
+    <audio id="bg-music" crossorigin="anonymous" src="https://drive.google.com/uc?export=download&id=1RPz00691DuQKyLEPikXoXdc7745l6S6w" loop preload="auto"></audio>
 
     <!-- Canvas for the game -->
     <canvas id="gameCanvas" width="800" height="600"></canvas>
@@ -28,9 +28,24 @@
     <script>
       const startBtn = document.getElementById('start-btn');
       const music = document.getElementById('bg-music');
+      let playRequested = false;
+
+      // If the audio finishes loading after the user starts the game,
+      // begin playback automatically.
+      music.addEventListener('canplaythrough', () => {
+        if (playRequested && music.paused) {
+          music.play().catch(() => {});
+        }
+      });
+
       startBtn.addEventListener('click', () => {
-        // Attempt to play music (may fail if user hasn't interacted)
-        music.play().catch(err => console.log(err));
+        playRequested = true;
+        const attempt = music.play();
+        if (attempt) {
+          attempt.catch(() => {
+            /* playback will be retried on canplaythrough */
+          });
+        }
         if (window.start_game) {
           window.start_game();
         }
