@@ -5,10 +5,38 @@
     <title>Desert Cab Dash</title>
     <link rel="stylesheet" href="game.css" />
 
-    <!-- Brython runtime and standard library (from CDN) -->
-    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/brython@3.11.3/brython.min.js"></script>
-    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/brython@3.11.3/brython_stdlib.js"></script>
+    <!-- Brython runtime/stdlib -->
+    <script
+      type="text/javascript"
+      src="https://cdn.jsdelivr.net/npm/brython@3.11.3/brython.min.js"
+    ></script>
+    <script
+      type="text/javascript"
+      src="https://cdn.jsdelivr.net/npm/brython@3.11.3/brython_stdlib.js"
+    ></script>
+
+    <style>
+      /* (Optional) on-screen debug box for errors */
+      #debug {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        max-height: 100px;
+        overflow-y: auto;
+        background: rgba(0, 0, 0, 0.7);
+        color: #0f0;
+        font-family: monospace;
+        font-size: 12px;
+        padding: 5px;
+        box-sizing: border-box;
+      }
+      #gameCanvas {
+        margin-bottom: 100px; /* make room for #debug */
+      }
+    </style>
   </head>
+
   <body onload="brython()">
     <!-- Overlay shown until user starts the game -->
     <div
@@ -24,6 +52,7 @@
         align-items: center;
         background: #000;
         color: #fff;
+        z-index: 2;
       "
     >
       <button id="start-btn" style="font-size: 24px; padding: 10px 20px;">
@@ -31,12 +60,18 @@
       </button>
     </div>
 
-    <!-- Background music. Use the direct‐download URL from Google Drive -->
+    <!--
+      Background music: pointing to local file “smoko.mp3”
+      (make sure smoko.mp3 is in the same folder as this HTML)
+    -->
     <audio
       id="bg-music"
-      src="https://drive.google.com/uc?export=download&id=1oNAz3b7ySGZocOWuD74cCJ3889x-0lwn"
+      src="cab.mp3"
       loop
       preload="auto"
+      controls
+      onerror="debugLog('Audio ERROR: failed to load src.');"
+      oncanplaythrough="debugLog('Audio is buffered (canplaythrough).');"
     ></audio>
 
     <!-- Canvas for the game -->
@@ -45,24 +80,69 @@
     <!-- The Python game logic (Brython) -->
     <script type="text/python" src="game.py"></script>
 
-    <!-- Script to start game and music after user interaction -->
+    <!-- On-screen debug box (so you don’t need F12) -->
+    <div id="debug">➤ Debug log will appear here…</div>
+
     <script>
+      // Helper to write messages into the #debug div
+      function debugLog(msg) {
+        const dbg = document.getElementById('debug');
+        const line = document.createElement('div');
+        line.textContent = '• ' + msg;
+        dbg.appendChild(line);
+        dbg.scrollTop = dbg.scrollHeight;
+      }
+
       const startBtn = document.getElementById('start-btn');
       const music = document.getElementById('bg-music');
 
       startBtn.addEventListener('click', () => {
-        // Directly play() on click—no .load(), no promise-catch logic here.
-        // This one line is the “user gesture” that Chrome recognizes.
-        music.play().catch((err) => {
-          // If it still fails, log the error so we can debug (CORS? invalid URL?)
-          console.warn("Audio play() failed:", err);
-        });
+        // Clear previous debug messages
+        document.getElementById('debug').innerHTML =
+          '➤ Debug log will appear here…';
 
+        // 1) Try synchronous play() (user gesture)
+        music
+          .play()
+          .then(() => {
+            debugLog('Audio.play() succeeded – should hear Smoko now.');
+          })
+          .catch((err) => {
+            debugLog('Audio.play() rejected: ' + err.name + ' – ' + err.message);
+            debugLog('Attempting muted fallback…');
+
+            // 2) Muted fallback to unlock audio
+            music.muted = true;
+            music
+              .play()
+              .then(() => {
+                debugLog('Muted play() succeeded; unmuting…');
+                music.currentTime = 0;
+                music.muted = false;
+                return music.play();
+              })
+              .then(() => {
+                debugLog('Unmuted play() succeeded – Smoko is playing.');
+              })
+              .catch((err2) => {
+                debugLog(
+                  'Muted fallback also failed: ' + err2.name + ' – ' + err2.message
+                );
+              });
+          });
+
+        // Start Brython game loop
         if (window.start_game) {
           window.start_game();
         }
         document.getElementById('start-overlay').style.display = 'none';
       });
+
+      // Optional: log built-in control events
+      music.addEventListener('play', () => debugLog('Event: play fired.'));
+      music.addEventListener('pause', () => debugLog('Event: pause fired.'));
+      music.addEventListener('waiting', () => debugLog('Event: waiting (buffering).'));
+      music.addEventListener('error', () => debugLog('Event: error fired.'));
     </script>
 
     <!-- Swipe controls for mobile -->
@@ -81,15 +161,23 @@
         const dy = t.screenY - touchStartY;
         if (Math.abs(dx) > Math.abs(dy)) {
           if (dx > 30) {
-            window.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight' }));
+            window.dispatchEvent(
+              new KeyboardEvent('keydown', { key: 'ArrowRight' })
+            );
           } else if (dx < -30) {
-            window.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowLeft' }));
+            window.dispatchEvent(
+              new KeyboardEvent('keydown', { key: 'ArrowLeft' })
+            );
           }
         } else {
           if (dy > 30) {
-            window.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown' }));
+            window.dispatchEvent(
+              new KeyboardEvent('keydown', { key: 'ArrowDown' })
+            );
           } else if (dy < -30) {
-            window.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowUp' }));
+            window.dispatchEvent(
+              new KeyboardEvent('keydown', { key: 'ArrowUp' })
+            );
           }
         }
         touchStartX = null;
