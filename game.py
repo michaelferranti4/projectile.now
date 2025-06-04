@@ -2,6 +2,7 @@ from browser import document, timer, window
 
 # === Constants ===
 WIDTH = window.innerWidth
+
 HEIGHT = window.innerHeight  # use full screen height
 
 LANE_COUNT = 3
@@ -25,6 +26,7 @@ POWERUP_SIZE = 30
 POWERUP_COLOR = "cyan"
 SHIELD_DURATION = 5000  # ms of invulnerability
 
+
 DECOR_LEFT_X = DESERT_WIDTH / 2
 DECOR_RIGHT_X = WIDTH - DESERT_WIDTH / 2
 COLLISION_MARGIN = 10
@@ -35,6 +37,7 @@ DEC_TYPES = ["cactus", "sign"]
 INITIAL_SPEED = 3  # px per frame (slightly faster)
 INITIAL_SPAWN_INTERVAL = 2000  # ms between obstacles
 MIN_SPAWN_INTERVAL = 700
+
 DECOR_SPAWN_INTERVAL = 1000  # ms
 POWERUP_SPAWN_INTERVAL = 15000  # ms
 DIFFICULTY_INTERVAL = 30000  # every 30 seconds
@@ -46,6 +49,7 @@ DAY_NIGHT_CYCLE = 60000  # full cycle in ms (30s day, 30s night)
 # === Global State ===
 canvas = document["gameCanvas"]
 canvas.width = WIDTH
+
 canvas.height = HEIGHT  # ensure canvas matches full screen height
 ctx = canvas.getContext("2d")
 
@@ -280,6 +284,7 @@ def draw_everything():
     ctx.fillStyle = "yellow"
     ctx.fillRect(0, 0, WIDTH, HEIGHT)
     ctx.fillStyle = "#222"  # road color
+
     ctx.fillRect(DESERT_WIDTH, 0, WIDTH - DESERT_WIDTH * 2, HEIGHT)
 
     # Draw lane separators (dashed white lines)
@@ -422,6 +427,7 @@ def update(dt=None):
             player_y = 0
         if player_y > HEIGHT - PLAYER_HEIGHT - 10:
             player_y = HEIGHT - PLAYER_HEIGHT - 10
+
 
     # Collision checks
     check_collisions()
