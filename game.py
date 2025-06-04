@@ -237,6 +237,11 @@ def draw_everything():
     ctx.fillStyle = "#555"  # road color
     ctx.fillRect(0, 0, WIDTH, HEIGHT)
 
+    # Desert borders on the sides
+    ctx.fillStyle = "yellow"
+    ctx.fillRect(0, 0, DECOR_LEFT_X, HEIGHT)
+    ctx.fillRect(WIDTH - DECOR_LEFT_X, 0, DECOR_LEFT_X, HEIGHT)
+
     # Draw lane separators (dashed white lines)
     ctx.strokeStyle = "white"
     ctx.setLineDash([20, 15])
@@ -272,10 +277,26 @@ def draw_everything():
     for obs in obstacles:
         ctx.fillStyle = obs["color"]
         ctx.fillRect(obs["x"], obs["y"], obs["width"], obs["height"])
+        # wheels
+        ctx.fillStyle = "black"
+        ctx.beginPath()
+        ctx.arc(obs["x"] + 10, obs["y"] + obs["height"] - 5, 5, 0, 2 * window.Math.PI)
+        ctx.fill()
+        ctx.beginPath()
+        ctx.arc(obs["x"] + obs["width"] - 10, obs["y"] + obs["height"] - 5, 5, 0, 2 * window.Math.PI)
+        ctx.fill()
 
     # Draw player
     ctx.fillStyle = PLAYER_COLOR
     ctx.fillRect(player_x, player_y, PLAYER_WIDTH, PLAYER_HEIGHT)
+    # player wheels
+    ctx.fillStyle = "black"
+    ctx.beginPath()
+    ctx.arc(player_x + 10, player_y + PLAYER_HEIGHT - 5, 5, 0, 2 * window.Math.PI)
+    ctx.fill()
+    ctx.beginPath()
+    ctx.arc(player_x + PLAYER_WIDTH - 10, player_y + PLAYER_HEIGHT - 5, 5, 0, 2 * window.Math.PI)
+    ctx.fill()
     if has_shield:
         ctx.strokeStyle = "cyan"
         ctx.lineWidth = 5
