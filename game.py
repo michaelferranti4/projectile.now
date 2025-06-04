@@ -2,7 +2,7 @@ from browser import document, timer, window
 
 # === Constants ===
 WIDTH = 800
-HEIGHT = 600
+HEIGHT = window.innerHeight  # use full screen height
 
 LANE_COUNT = 3
 LANE_CENTERS = [WIDTH / 6, WIDTH / 2, WIDTH * 5 / 6]  # x‐centers for the 3 lanes
@@ -22,16 +22,18 @@ POWERUP_SIZE = 30
 POWERUP_COLOR = "cyan"
 SHIELD_DURATION = 5000  # ms of invulnerability
 
-DECOR_LEFT_X = 20
-DECOR_RIGHT_X = WIDTH - 40
+DESERT_WIDTH = 80  # width of desert strip on each side
+DECOR_LEFT_X = DESERT_WIDTH / 2
+DECOR_RIGHT_X = WIDTH - DESERT_WIDTH / 2
+COLLISION_MARGIN = 10
 
 DEC_TYPES = ["cactus", "sign"]
 
 # Difficulty / timing
 INITIAL_SPEED = 2  # px per frame
-INITIAL_SPAWN_INTERVAL = 1500  # ms between obstacles
-MIN_SPAWN_INTERVAL = 500
-DECOR_SPAWN_INTERVAL = 2000  # ms
+INITIAL_SPAWN_INTERVAL = 2200  # ms between obstacles (slower spawn)
+MIN_SPAWN_INTERVAL = 800
+DECOR_SPAWN_INTERVAL = 1000  # ms
 POWERUP_SPAWN_INTERVAL = 15000  # ms
 DIFFICULTY_INTERVAL = 30000  # every 30 seconds
 SCORE_INTERVAL = 1000  # every second
@@ -41,6 +43,7 @@ DAY_NIGHT_CYCLE = 60000  # full cycle in ms (30s day, 30s night)
 
 # === Global State ===
 canvas = document["gameCanvas"]
+canvas.height = HEIGHT  # ensure canvas matches full screen height
 ctx = canvas.getContext("2d")
 
 player_lane = PLAYER_START_LANE
@@ -59,6 +62,9 @@ dec_timer_id = None
 power_timer_id = None
 diff_timer_id = None
 score_timer_id = None
+
+# Currently pressed keys for smooth movement
+keys_down = set()
 
 # Game variables
 base_speed = INITIAL_SPEED
@@ -91,9 +97,28 @@ def update_player_pos():
     player_x = LANE_CENTERS[player_lane] - PLAYER_WIDTH / 2
 
 
+def boxes_intersect(x1, y1, w1, h1, x2, y2, w2, h2, margin=0):
+    """Return True if the two rectangles intersect with optional margin."""
+    return (
+        x1 + margin < x2 + w2 - margin
+        and x1 + w1 - margin > x2 + margin
+        and y1 + margin < y2 + h2 - margin
+        and y1 + h1 - margin > y2 + margin
+    )
+
+
 def spawn_obstacle():
     """Create a new obstacle in a random lane, moving downward."""
+    # avoid stacking obstacles too closely at the top
+    attempts = 0
     lane = int(window.Math.floor(window.Math.random() * LANE_COUNT))
+    while attempts < 5:
+        if not any(
+            o["lane"] == lane and o["y"] < OBSTACLE_HEIGHT * 2 for o in obstacles
+        ):
+            break
+        lane = int(window.Math.floor(window.Math.random() * LANE_COUNT))
+        attempts += 1
     x = LANE_CENTERS[lane] - OBSTACLE_WIDTH / 2
     y = -OBSTACLE_HEIGHT
     speed = base_speed + window.Math.random() * 1  # small variation
@@ -167,25 +192,32 @@ def check_collisions():
         return
 
     for obs in list(obstacles):
-        if obs["lane"] == player_lane:
-            if obs["y"] + obs["height"] > player_y and obs["y"] < player_y + PLAYER_HEIGHT:
-                # Collision!
-                if has_shield:
-                    # Destroy this obstacle and consume shield
-                    try:
-                        obstacles.remove(obs)
-                    except ValueError:
-                        pass
-                    has_shield = False
-                    return
-                else:
-                    # Game over
-                    game_over = True
-                    # Update high score if needed
-                    if score > high_score:
-                        high_score = score
-                        window.localStorage.setItem("desertCabHighScore", str(high_score))
-                    return
+        if boxes_intersect(
+            player_x,
+            player_y,
+            PLAYER_WIDTH,
+            PLAYER_HEIGHT,
+            obs["x"],
+            obs["y"],
+            obs["width"],
+            obs["height"],
+            COLLISION_MARGIN,
+        ):
+            if has_shield:
+                try:
+                    obstacles.remove(obs)
+                except ValueError:
+                    pass
+                has_shield = False
+                return
+            else:
+                game_over = True
+                if score > high_score:
+                    high_score = score
+                    window.localStorage.setItem(
+                        "desertCabHighScore", str(high_score)
+                    )
+                return
 
 
 def check_powerup_collision():
@@ -198,16 +230,24 @@ def check_powerup_collision():
     now = window.Date.now()
 
     for pu in list(power_ups):
-        if pu["lane"] == player_lane:
-            if pu["y"] + pu["size"] > player_y and pu["y"] < player_y + PLAYER_HEIGHT:
-                # Picked up
-                has_shield = True
-                shield_expire_time = now + SHIELD_DURATION
-                try:
-                    power_ups.remove(pu)
-                except ValueError:
-                    pass
-                return
+        if boxes_intersect(
+            player_x,
+            player_y,
+            PLAYER_WIDTH,
+            PLAYER_HEIGHT,
+            pu["x"],
+            pu["y"],
+            pu["size"],
+            pu["size"],
+            0,
+        ):
+            has_shield = True
+            shield_expire_time = now + SHIELD_DURATION
+            try:
+                power_ups.remove(pu)
+            except ValueError:
+                pass
+            return
 
 
 def difficulty_ramp():
@@ -233,14 +273,11 @@ def increment_score():
 
 def draw_everything():
     """Draw background, road, lanes, decorations, obstacles, player, power‐ups, UI, and day/night overlay."""
-    # Clear / draw road background
-    ctx.fillStyle = "#555"  # road color
-    ctx.fillRect(0, 0, WIDTH, HEIGHT)
-
-    # Desert borders on the sides
+    # Clear background with desert color then draw the road
     ctx.fillStyle = "yellow"
-    ctx.fillRect(0, 0, DECOR_LEFT_X, HEIGHT)
-    ctx.fillRect(WIDTH - DECOR_LEFT_X, 0, DECOR_LEFT_X, HEIGHT)
+    ctx.fillRect(0, 0, WIDTH, HEIGHT)
+    ctx.fillStyle = "#555"  # road color
+    ctx.fillRect(DESERT_WIDTH, 0, WIDTH - DESERT_WIDTH * 2, HEIGHT)
 
     # Draw lane separators (dashed white lines)
     ctx.strokeStyle = "white"
@@ -355,6 +392,30 @@ def update(dt=None):
         pu["y"] += base_speed
     power_ups[:] = [p for p in power_ups if p["y"] < HEIGHT + 50]
 
+    # Smooth player movement based on keys held
+    move_x = 0
+    move_y = 0
+    if "ArrowLeft" in keys_down:
+        move_x -= PLAYER_MOVE_STEP
+    if "ArrowRight" in keys_down:
+        move_x += PLAYER_MOVE_STEP
+    if "ArrowUp" in keys_down:
+        move_y -= PLAYER_MOVE_STEP
+    if "ArrowDown" in keys_down:
+        move_y += PLAYER_MOVE_STEP
+    if move_x or move_y:
+        global player_x, player_y
+        player_x += move_x
+        player_y += move_y
+        if player_x < DESERT_WIDTH:
+            player_x = DESERT_WIDTH
+        if player_x > WIDTH - DESERT_WIDTH - PLAYER_WIDTH:
+            player_x = WIDTH - DESERT_WIDTH - PLAYER_WIDTH
+        if player_y < 0:
+            player_y = 0
+        if player_y > HEIGHT - PLAYER_HEIGHT:
+            player_y = HEIGHT - PLAYER_HEIGHT
+
     # Collision checks
     check_collisions()
     check_powerup_collision()
@@ -412,29 +473,22 @@ def restart():
 
 # === Input Handling ===
 def on_keydown(evt):
-    """Arrow keys move player; R to restart if game is over."""
-    global player_lane, player_y
-
+    """Track keys being pressed for smooth movement."""
     key = evt.key
-    if key == "ArrowLeft" and player_lane > 0:
-        player_lane -= 1
-        update_player_pos()
-    elif key == "ArrowRight" and player_lane < LANE_COUNT - 1:
-        player_lane += 1
-        update_player_pos()
-    elif key == "ArrowUp" and player_y > 0:
-        player_y -= PLAYER_MOVE_STEP
-        if player_y < 0:
-            player_y = 0
-    elif key == "ArrowDown" and player_y < HEIGHT - PLAYER_HEIGHT:
-        player_y += PLAYER_MOVE_STEP
-        if player_y > HEIGHT - PLAYER_HEIGHT:
-            player_y = HEIGHT - PLAYER_HEIGHT
-    elif (key == "r" or key == "R") and game_over:
+    keys_down.add(key)
+    if (key == "r" or key == "R") and game_over:
         restart()
 
 
+def on_keyup(evt):
+    """Remove keys from the pressed set when released."""
+    key = evt.key
+    if key in keys_down:
+        keys_down.remove(key)
+
+
 document.bind("keydown", on_keydown)
+document.bind("keyup", on_keyup)
 
 
 # Expose game start to JavaScript. The game will begin when
