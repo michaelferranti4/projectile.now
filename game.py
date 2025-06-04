@@ -2,10 +2,10 @@ from browser import document, timer, window
 
 # === Constants ===
 WIDTH = 800
-HEIGHT = 600
-
 LANE_COUNT = 3
-LANE_CENTERS = [WIDTH / 6, WIDTH / 2, WIDTH * 5 / 6]  # x‐centers for the 3 lanes
+ROAD_BORDER_WIDTH = 40
+LANE_WIDTH = (WIDTH - 2 * ROAD_BORDER_WIDTH) / LANE_COUNT
+LANE_CENTERS = [ROAD_BORDER_WIDTH + LANE_WIDTH/2 + i*LANE_WIDTH for i in range(LANE_COUNT)]
 
 PLAYER_WIDTH = 50
 PLAYER_HEIGHT = 100
@@ -22,8 +22,8 @@ POWERUP_SIZE = 30
 POWERUP_COLOR = "cyan"
 SHIELD_DURATION = 5000  # ms of invulnerability
 
-DECOR_LEFT_X = 20
-DECOR_RIGHT_X = WIDTH - 40
+DECOR_LEFT_X = ROAD_BORDER_WIDTH / 2
+DECOR_RIGHT_X = WIDTH - ROAD_BORDER_WIDTH / 2
 
 DEC_TYPES = ["cactus", "sign"]
 
@@ -115,10 +115,6 @@ def spawn_decoration():
     """Spawn a decorative cactus or sign on either side, scrolling downward."""
     dtype = DEC_TYPES[int(window.Math.floor(window.Math.random() * len(DEC_TYPES)))]
     side = "left" if window.Math.random() < 0.5 else "right"
-    if side == "left":
-        x = DECOR_LEFT_X
-    else:
-        x = DECOR_RIGHT_X
 
     if dtype == "cactus":
         width = 20
@@ -129,6 +125,10 @@ def spawn_decoration():
         height = 40
         color = "brown"
 
+    if side == "left":
+        x = DECOR_LEFT_X - width / 2
+    else:
+        x = DECOR_RIGHT_X - width / 2
     y = -height
     decorations.append(
         {
@@ -236,13 +236,17 @@ def draw_everything():
     # Clear / draw road background
     ctx.fillStyle = "#555"  # road color
     ctx.fillRect(0, 0, WIDTH, HEIGHT)
+    # Yellow borders on the sides
+    ctx.fillStyle = "yellow"
+    ctx.fillRect(0, 0, ROAD_BORDER_WIDTH, HEIGHT)
+    ctx.fillRect(WIDTH - ROAD_BORDER_WIDTH, 0, ROAD_BORDER_WIDTH, HEIGHT)
 
     # Draw lane separators (dashed white lines)
     ctx.strokeStyle = "white"
     ctx.setLineDash([20, 15])
     ctx.lineWidth = 4
     for i in range(1, LANE_COUNT):
-        x = (WIDTH / LANE_COUNT) * i
+        x = ROAD_BORDER_WIDTH + LANE_WIDTH * i
         ctx.beginPath()
         ctx.moveTo(x, 0)
         ctx.lineTo(x, HEIGHT)
@@ -414,6 +418,14 @@ def on_keydown(evt):
 
 
 document.bind("keydown", on_keydown)
+
+
+def on_click(evt):
+    if game_over:
+        restart()
+
+canvas.bind("click", on_click)
+canvas.bind("touchend", on_click)
 
 
 # Expose game start to JavaScript. The game will begin when
