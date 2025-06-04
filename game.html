@@ -6,14 +6,8 @@
     <link rel="stylesheet" href="game.css" />
 
     <!-- Brython runtime and standard library (from CDN) -->
-    <script
-      type="text/javascript"
-      src="https://cdn.jsdelivr.net/npm/brython@3.11.3/brython.min.js"
-    ></script>
-    <script
-      type="text/javascript"
-      src="https://cdn.jsdelivr.net/npm/brython@3.11.3/brython_stdlib.js"
-    ></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/brython@3.11.3/brython.min.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/brython@3.11.3/brython_stdlib.js"></script>
   </head>
   <body onload="brython()">
     <!-- Overlay shown until user starts the game -->
@@ -37,7 +31,7 @@
       </button>
     </div>
 
-    <!-- Background music. Use the direct-download URL from Drive -->
+    <!-- Background music. Use the direct‐download URL from Google Drive -->
     <audio
       id="bg-music"
       src="https://drive.google.com/uc?export=download&id=1oNAz3b7ySGZocOWuD74cCJ3889x-0lwn"
@@ -57,21 +51,13 @@
       const music = document.getElementById('bg-music');
 
       startBtn.addEventListener('click', () => {
-        // 1) Try a direct, synchronous play() (the “pure gesture” path)
+        // Directly play() on click—no .load(), no promise-catch logic here.
+        // This one line is the “user gesture” that Chrome recognizes.
         music.play().catch((err) => {
-          // If that fails, do the muted→unmuted “unlock” trick
-          console.warn('Direct play() failed, trying muted fallback:', err);
-          music.muted = true;
-          music.play()
-            .then(() => {
-              music.currentTime = 0;
-              music.muted = false;
-              return music.play();
-            })
-            .catch((err2) => console.warn('Muted fallback also failed:', err2));
+          // If it still fails, log the error so we can debug (CORS? invalid URL?)
+          console.warn("Audio play() failed:", err);
         });
 
-        // Start the Brython game loop
         if (window.start_game) {
           window.start_game();
         }
@@ -95,23 +81,15 @@
         const dy = t.screenY - touchStartY;
         if (Math.abs(dx) > Math.abs(dy)) {
           if (dx > 30) {
-            window.dispatchEvent(
-              new KeyboardEvent('keydown', { key: 'ArrowRight' })
-            );
+            window.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight' }));
           } else if (dx < -30) {
-            window.dispatchEvent(
-              new KeyboardEvent('keydown', { key: 'ArrowLeft' })
-            );
+            window.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowLeft' }));
           }
         } else {
           if (dy > 30) {
-            window.dispatchEvent(
-              new KeyboardEvent('keydown', { key: 'ArrowDown' })
-            );
+            window.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown' }));
           } else if (dy < -30) {
-            window.dispatchEvent(
-              new KeyboardEvent('keydown', { key: 'ArrowUp' })
-            );
+            window.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowUp' }));
           }
         }
         touchStartX = null;
