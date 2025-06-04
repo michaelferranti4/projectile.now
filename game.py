@@ -11,7 +11,8 @@ PLAYER_WIDTH = 50
 PLAYER_HEIGHT = 100
 PLAYER_COLOR = "yellow"
 PLAYER_START_LANE = 1  # 0=left, 1=center, 2=right
-PLAYER_Y = HEIGHT - PLAYER_HEIGHT - 10  # 10px from bottom
+PLAYER_START_Y = HEIGHT - PLAYER_HEIGHT - 10  # 10px from bottom
+PLAYER_MOVE_STEP = 20
 
 OBSTACLE_WIDTH = PLAYER_WIDTH
 OBSTACLE_HEIGHT = PLAYER_HEIGHT
@@ -44,6 +45,7 @@ ctx = canvas.getContext("2d")
 
 player_lane = PLAYER_START_LANE
 player_x = LANE_CENTERS[player_lane] - PLAYER_WIDTH / 2
+player_y = PLAYER_START_Y
 
 # Lists of active game objects
 obstacles = []
@@ -166,7 +168,7 @@ def check_collisions():
 
     for obs in list(obstacles):
         if obs["lane"] == player_lane:
-            if obs["y"] + obs["height"] > PLAYER_Y and obs["y"] < PLAYER_Y + PLAYER_HEIGHT:
+            if obs["y"] + obs["height"] > player_y and obs["y"] < player_y + PLAYER_HEIGHT:
                 # Collision!
                 if has_shield:
                     # Destroy this obstacle and consume shield
@@ -197,7 +199,7 @@ def check_powerup_collision():
 
     for pu in list(power_ups):
         if pu["lane"] == player_lane:
-            if pu["y"] + pu["size"] > PLAYER_Y and pu["y"] < PLAYER_Y + PLAYER_HEIGHT:
+            if pu["y"] + pu["size"] > player_y and pu["y"] < player_y + PLAYER_HEIGHT:
                 # Picked up
                 has_shield = True
                 shield_expire_time = now + SHIELD_DURATION
@@ -273,11 +275,11 @@ def draw_everything():
 
     # Draw player
     ctx.fillStyle = PLAYER_COLOR
-    ctx.fillRect(player_x, PLAYER_Y, PLAYER_WIDTH, PLAYER_HEIGHT)
+    ctx.fillRect(player_x, player_y, PLAYER_WIDTH, PLAYER_HEIGHT)
     if has_shield:
         ctx.strokeStyle = "cyan"
         ctx.lineWidth = 5
-        ctx.strokeRect(player_x, PLAYER_Y, PLAYER_WIDTH, PLAYER_HEIGHT)
+        ctx.strokeRect(player_x, player_y, PLAYER_WIDTH, PLAYER_HEIGHT)
         ctx.lineWidth = 1
 
     # Draw score & high score
@@ -348,7 +350,7 @@ def restart():
     """Reset all game state and restart all timers."""
     global obstacles, decorations, power_ups
     global score, game_over, base_speed, spawn_interval
-    global player_lane, start_time, has_shield, shield_expire_time
+    global player_lane, player_y, start_time, has_shield, shield_expire_time
     global spawn_timer_id, dec_timer_id, power_timer_id, diff_timer_id, score_timer_id, game_loop_id
 
     # Clear previous timers
@@ -369,6 +371,7 @@ def restart():
     spawn_interval = INITIAL_SPAWN_INTERVAL
 
     player_lane = PLAYER_START_LANE
+    player_y = PLAYER_START_Y
     update_player_pos()
     has_shield = False
     shield_expire_time = 0
@@ -383,14 +386,13 @@ def restart():
     diff_timer_id = timer.set_interval(difficulty_ramp, DIFFICULTY_INTERVAL)
     score_timer_id = timer.set_interval(increment_score, SCORE_INTERVAL)
 
-    # Immediately draw the first frame
+# Immediately draw the first frame
     draw_everything()
 
-#change
 # === Input Handling ===
 def on_keydown(evt):
-    """Left/Right to switch lanes; R to restart if game is over."""
-    global player_lane
+    """Arrow keys move player; R to restart if game is over."""
+    global player_lane, player_y
 
     key = evt.key
     if key == "ArrowLeft" and player_lane > 0:
@@ -399,6 +401,14 @@ def on_keydown(evt):
     elif key == "ArrowRight" and player_lane < LANE_COUNT - 1:
         player_lane += 1
         update_player_pos()
+    elif key == "ArrowUp" and player_y > 0:
+        player_y -= PLAYER_MOVE_STEP
+        if player_y < 0:
+            player_y = 0
+    elif key == "ArrowDown" and player_y < HEIGHT - PLAYER_HEIGHT:
+        player_y += PLAYER_MOVE_STEP
+        if player_y > HEIGHT - PLAYER_HEIGHT:
+            player_y = HEIGHT - PLAYER_HEIGHT
     elif (key == "r" or key == "R") and game_over:
         restart()
 
@@ -406,5 +416,6 @@ def on_keydown(evt):
 document.bind("keydown", on_keydown)
 
 
-# === Start the game immediately ===
-restart()
+# Expose game start to JavaScript. The game will begin when
+# window.start_game() is called from JS after user interaction.
+window.start_game = restart
