@@ -10,6 +10,6 @@ body {
 }
 
 canvas {
-  border: 2px solid #000;
+  border: 2px solid yellow;
   display: block; /* Remove default inline whitespace */
 }

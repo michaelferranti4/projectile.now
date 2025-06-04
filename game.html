@@ -100,21 +100,21 @@
         const dy = t.screenY - touchStartY;
         if (Math.abs(dx) > Math.abs(dy)) {
           if (dx > 30) {
-            window.dispatchEvent(
+            document.dispatchEvent(
               new KeyboardEvent('keydown', { key: 'ArrowRight' })
             );
           } else if (dx < -30) {
-            window.dispatchEvent(
+            document.dispatchEvent(
               new KeyboardEvent('keydown', { key: 'ArrowLeft' })
             );
           }
         } else {
           if (dy > 30) {
-            window.dispatchEvent(
+            document.dispatchEvent(
               new KeyboardEvent('keydown', { key: 'ArrowDown' })
             );
           } else if (dy < -30) {
-            window.dispatchEvent(
+            document.dispatchEvent(
               new KeyboardEvent('keydown', { key: 'ArrowUp' })
             );
           }
