@@ -4,19 +4,40 @@
     <meta charset="utf-8" />
     <title>Desert Cab Dash</title>
     <link rel="stylesheet" href="game.css" />
+
     <!-- Brython runtime and standard library (from CDN) -->
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/brython@3.11.3/brython.min.js"></script>
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/brython@3.11.3/brython_stdlib.js"></script>
-
   </head>
   <body onload="brython()">
     <!-- Overlay shown until user starts the game -->
-    <div id="start-overlay" style="position:absolute;top:0;left:0;width:100%;height:100%;display:flex;justify-content:center;align-items:center;background:#000;color:#fff;">
-      <button id="start-btn" style="font-size:24px;padding:10px 20px;">Start Game</button>
+    <div
+      id="start-overlay"
+      style="
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background: #000;
+        color: #fff;
+      "
+    >
+      <button id="start-btn" style="font-size: 24px; padding: 10px 20px;">
+        Start Game
+      </button>
     </div>
 
-    <!-- Background music. Using the smaller MP3 hosted on Google Drive -->
-    <audio id="bg-music" crossorigin="anonymous" src="https://drive.google.com/uc?export=download&id=1RPz00691DuQKyLEPikXoXdc7745l6S6w" loop preload="auto"></audio>
+    <!-- Background music. Use the direct‐download URL from Google Drive -->
+    <audio
+      id="bg-music"
+      src="https://drive.google.com/uc?export=download&id=1oNAz3b7ySGZocOWuD74cCJ3889x-0lwn"
+      loop
+      preload="auto"
+    ></audio>
 
     <!-- Canvas for the game -->
     <canvas id="gameCanvas" width="800" height="600"></canvas>
@@ -30,26 +51,31 @@
       const music = document.getElementById('bg-music');
       let playRequested = false;
 
-      // If the audio finishes loading after the user starts the game,
-      // begin playback automatically.
-      music.addEventListener('canplaythrough', () => {
-        if (playRequested && music.paused) {
-          music.play().catch(() => {});
-        }
-      });
-
       startBtn.addEventListener('click', () => {
-        playRequested = true;
+        // Force the audio to load if it isn’t already
+        music.load();
+
+        // Try to play immediately on user gesture
         const attempt = music.play();
         if (attempt) {
           attempt.catch(() => {
-            /* playback will be retried on canplaythrough */
+            // If it fails (buffering not ready), wait for canplaythrough
+            playRequested = true;
           });
         }
+
         if (window.start_game) {
           window.start_game();
         }
         document.getElementById('start-overlay').style.display = 'none';
+      });
+
+      // Once the audio is buffered enough to play, retry if user already clicked
+      music.addEventListener('canplaythrough', () => {
+        if (playRequested && music.paused) {
+          music.play().catch(() => {});
+          playRequested = false;
+        }
       });
     </script>
 
@@ -69,15 +95,15 @@
         const dy = t.screenY - touchStartY;
         if (Math.abs(dx) > Math.abs(dy)) {
           if (dx > 30) {
-            window.dispatchEvent(new KeyboardEvent('keydown', {key: 'ArrowRight'}));
+            window.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight' }));
           } else if (dx < -30) {
-            window.dispatchEvent(new KeyboardEvent('keydown', {key: 'ArrowLeft'}));
+            window.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowLeft' }));
           }
         } else {
           if (dy > 30) {
-            window.dispatchEvent(new KeyboardEvent('keydown', {key: 'ArrowDown'}));
+            window.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown' }));
           } else if (dy < -30) {
-            window.dispatchEvent(new KeyboardEvent('keydown', {key: 'ArrowUp'}));
+            window.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowUp' }));
           }
         }
         touchStartX = null;
