@@ -48,11 +48,18 @@ function skipIntroVideo() {
       joinBtn.classList.remove('button-hidden');
       joinBtn.classList.add('button-shown');
 
-      // Fade in Contact button 1s after the Join button
+      // NEW: Fade in Play Game button 0.5s after Join
       setTimeout(() => {
-        contactContainer.classList.remove('button-hidden');
-        contactContainer.classList.add('button-shown');
-      }, 1000);
+        playGameBtn.classList.remove('button-hidden');
+        playGameBtn.classList.add('button-shown');
+
+        // Fade in Contact button 1s after the Play Game button
+        setTimeout(() => {
+          contactContainer.classList.remove('button-hidden');
+          contactContainer.classList.add('button-shown');
+        }, 1000);
+
+      }, 500);
 
     }, 500);
   }, 1000);
