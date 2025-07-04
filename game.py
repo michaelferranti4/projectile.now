@@ -1,14 +1,18 @@
 from browser import document, timer, window
 
 # === Constants ===
-WIDTH = 800
+WIDTH = window.innerWidth
+
 HEIGHT = window.innerHeight  # use full screen height
 
 LANE_COUNT = 3
-LANE_CENTERS = [WIDTH / 6, WIDTH / 2, WIDTH * 5 / 6]  # x‐centers for the 3 lanes
+DESERT_WIDTH = 80  # width of desert strip on each side
+ROAD_WIDTH = WIDTH - DESERT_WIDTH * 2
+LANE_WIDTH = ROAD_WIDTH / LANE_COUNT
+LANE_CENTERS = [DESERT_WIDTH + LANE_WIDTH / 2 + i * LANE_WIDTH for i in range(LANE_COUNT)]
 
-PLAYER_WIDTH = 50
-PLAYER_HEIGHT = 100
+PLAYER_WIDTH = 60
+PLAYER_HEIGHT = 110
 PLAYER_COLOR = "yellow"
 PLAYER_START_LANE = 1  # 0=left, 1=center, 2=right
 PLAYER_START_Y = HEIGHT - PLAYER_HEIGHT - 10  # 10px from bottom
@@ -22,7 +26,7 @@ POWERUP_SIZE = 30
 POWERUP_COLOR = "cyan"
 SHIELD_DURATION = 5000  # ms of invulnerability
 
-DESERT_WIDTH = 80  # width of desert strip on each side
+
 DECOR_LEFT_X = DESERT_WIDTH / 2
 DECOR_RIGHT_X = WIDTH - DESERT_WIDTH / 2
 COLLISION_MARGIN = 10
@@ -30,9 +34,10 @@ COLLISION_MARGIN = 10
 DEC_TYPES = ["cactus", "sign"]
 
 # Difficulty / timing
-INITIAL_SPEED = 2  # px per frame
-INITIAL_SPAWN_INTERVAL = 2200  # ms between obstacles (slower spawn)
-MIN_SPAWN_INTERVAL = 800
+INITIAL_SPEED = 3  # px per frame (slightly faster)
+INITIAL_SPAWN_INTERVAL = 2000  # ms between obstacles
+MIN_SPAWN_INTERVAL = 700
+
 DECOR_SPAWN_INTERVAL = 1000  # ms
 POWERUP_SPAWN_INTERVAL = 15000  # ms
 DIFFICULTY_INTERVAL = 30000  # every 30 seconds
@@ -43,6 +48,8 @@ DAY_NIGHT_CYCLE = 60000  # full cycle in ms (30s day, 30s night)
 
 # === Global State ===
 canvas = document["gameCanvas"]
+canvas.width = WIDTH
+
 canvas.height = HEIGHT  # ensure canvas matches full screen height
 ctx = canvas.getContext("2d")
 
@@ -276,7 +283,8 @@ def draw_everything():
     # Clear background with desert color then draw the road
     ctx.fillStyle = "yellow"
     ctx.fillRect(0, 0, WIDTH, HEIGHT)
-    ctx.fillStyle = "#555"  # road color
+    ctx.fillStyle = "#222"  # road color
+
     ctx.fillRect(DESERT_WIDTH, 0, WIDTH - DESERT_WIDTH * 2, HEIGHT)
 
     # Draw lane separators (dashed white lines)
@@ -284,7 +292,7 @@ def draw_everything():
     ctx.setLineDash([20, 15])
     ctx.lineWidth = 4
     for i in range(1, LANE_COUNT):
-        x = (WIDTH / LANE_COUNT) * i
+        x = DESERT_WIDTH + LANE_WIDTH * i
         ctx.beginPath()
         ctx.moveTo(x, 0)
         ctx.lineTo(x, HEIGHT)
@@ -342,8 +350,12 @@ def draw_everything():
 
     # Draw score & high score
     ctx.font = "20px sans-serif"
+    ctx.lineWidth = 3
+    ctx.strokeStyle = "black"
     ctx.fillStyle = "white"
+    ctx.strokeText(f"Score: {score}", 10, 30)
     ctx.fillText(f"Score: {score}", 10, 30)
+    ctx.strokeText(f"High Score: {high_score}", 10, 60)
     ctx.fillText(f"High Score: {high_score}", 10, 60)
 
     # If game over, overlay a semi‐transparent rectangle and text
@@ -413,8 +425,9 @@ def update(dt=None):
             player_x = WIDTH - DESERT_WIDTH - PLAYER_WIDTH
         if player_y < 0:
             player_y = 0
-        if player_y > HEIGHT - PLAYER_HEIGHT:
-            player_y = HEIGHT - PLAYER_HEIGHT
+        if player_y > HEIGHT - PLAYER_HEIGHT - 10:
+            player_y = HEIGHT - PLAYER_HEIGHT - 10
+
 
     # Collision checks
     check_collisions()
