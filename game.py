@@ -93,8 +93,8 @@ def recalc_lane_geometry():
     ]
 
     # Cars should almost fill their lane (≈ 85 %)
-    PLAYER_WIDTH  = int(lane_w * 0.85)
-    PLAYER_HEIGHT = int(PLAYER_WIDTH * 2)      # keep the 1 : 2 aspect ratio
+    PLAYER_WIDTH  = int(lane_w * 0.7)
+    PLAYER_HEIGHT = int(PLAYER_WIDTH * 1.75)      # keep the 1 : 2 aspect ratio
 
     # Obstacles match the player’s footprint
     global OBSTACLE_WIDTH, OBSTACLE_HEIGHT
