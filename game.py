@@ -6,7 +6,7 @@ LANE_COUNT      = 4
 
 LANE_CENTERS    = [WIDTH / 6, WIDTH / 2, WIDTH * 5 / 6]
 
-size_multi= .75
+size_multi= .5
 # ⇢ Bigger cars & player
 PLAYER_WIDTH    = 70 * size_multi         # was 50
 PLAYER_HEIGHT   = 140  * size_multi       # was 100
