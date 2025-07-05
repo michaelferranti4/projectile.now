@@ -89,15 +89,26 @@ def reset_player_pos():
     player_y = HEIGHT - PLAYER_HEIGHT - BOTTOM_MARGIN
 
 def update_dimensions(evt=None):
-    """Sync HEIGHT & canvas pixel-buffer to the real visual viewport."""
+    """
+    Keeps three things in lock-step:
+    1. The CSS layout height of <canvas>   (what the browser draws)
+    2. canvas.height                       (the pixel buffer Brython draws into)
+    3. our global HEIGHT variable          (what the game logic uses)
+    """
     global HEIGHT
-    # Prefer visualViewport (Chrome, Safari, FF) then fall back to boundingRect
-    HEIGHT = getattr(window, "visualViewport", None) and window.visualViewport.height \
-             or canvas.getBoundingClientRect().height
-    canvas.height = HEIGHT        # resize the pixel buffer
-    reset_player_pos()
-    draw_everything()             # redraw after any resize
+    # Real pixels the canvas occupies on the page *right now*
+    HEIGHT = canvas.getBoundingClientRect().height
 
+    # Make sure the element itself stretches to the viewport
+    # (important after device-rotation / virtual-keyboard pop-ups etc.)
+    canvas.style.height = f"{window.innerHeight}px"
+
+    # Match the pixel buffer to the element’s new size
+    canvas.height = HEIGHT
+
+    # Keep the player sitting on the visible road
+    reset_player_pos()
+    draw_everything()
 def boxes_intersect(x1, y1, w1, h1, x2, y2, w2, h2, margin=0):
     return (
         x1 + margin < x2 + w2 - margin
@@ -321,8 +332,8 @@ def restart():
     base_speed, spawn_interval = INITIAL_SPEED, INITIAL_SPAWN_INTERVAL
     has_shield, shield_expire_time = False, 0
 
-    update_player_pos()   # x
-    reset_player_pos()    # y
+    update_dimensions()  # resizes canvas & also calls reset_player_pos()
+    update_player_pos()
     start_time = window.Date.now()
 
     # Timers
@@ -351,8 +362,8 @@ document.bind("keyup", on_keyup)
 
 # ---------------- initialisation -------------------------------------------
 
-update_player_pos()
 update_dimensions()               # sets HEIGHT, player_y, canvas.height
+update_player_pos()
 window.bind("resize", update_dimensions)
 
 # Expose a JS-callable start
