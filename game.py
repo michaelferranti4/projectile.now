@@ -11,7 +11,8 @@ PLAYER_WIDTH = 50
 PLAYER_HEIGHT = 100
 PLAYER_COLOR = "yellow"
 PLAYER_START_LANE = 1  # 0=left, 1=center, 2=right
-PLAYER_START_Y = HEIGHT - PLAYER_HEIGHT - 10  # 10px from bottom
+BOTTOM_MARGIN = 10  # how far from the very bottom the car can go
+PLAYER_START_Y = HEIGHT - PLAYER_HEIGHT - BOTTOM_MARGIN
 PLAYER_MOVE_STEP = 20
 
 OBSTACLE_WIDTH = PLAYER_WIDTH
@@ -25,17 +26,17 @@ SHIELD_DURATION = 5000  # ms of invulnerability
 DESERT_WIDTH = 80  # width of desert strip on each side
 DECOR_LEFT_X = DESERT_WIDTH / 2
 DECOR_RIGHT_X = WIDTH - DESERT_WIDTH / 2
-COLLISION_MARGIN = 10
+COLLISION_MARGIN = 2  # tighter hitbox for a tougher game
 
 DEC_TYPES = ["cactus", "sign"]
 
-# Difficulty / timing
-INITIAL_SPEED = 2  # px per frame
-INITIAL_SPAWN_INTERVAL = 2200  # ms between obstacles (slower spawn)
-MIN_SPAWN_INTERVAL = 800
-DECOR_SPAWN_INTERVAL = 1000  # ms
-POWERUP_SPAWN_INTERVAL = 15000  # ms
-DIFFICULTY_INTERVAL = 30000  # every 30 seconds
+# Difficulty / timing – tuned for a harder game
+INITIAL_SPEED = 3  # px per frame (faster start)
+INITIAL_SPAWN_INTERVAL = 1500  # ms between obstacles (more frequent)
+MIN_SPAWN_INTERVAL = 500
+DECOR_SPAWN_INTERVAL = 800   # a bit busier scenery
+POWERUP_SPAWN_INTERVAL = 15000  # unchanged
+DIFFICULTY_INTERVAL = 20000  # ramps every 20 seconds (was 30)
 SCORE_INTERVAL = 1000  # every second
 
 DAY_NIGHT_CYCLE = 60000  # full cycle in ms (30s day, 30s night)
@@ -91,6 +92,7 @@ else:
 
 
 # === Utility Functions ===
+
 def update_player_pos():
     """Recompute player_x from player_lane."""
     global player_x
@@ -108,42 +110,40 @@ def boxes_intersect(x1, y1, w1, h1, x2, y2, w2, h2, margin=0):
 
 
 def spawn_obstacle():
-    """Create a new obstacle in a random lane, moving downward."""
-    # avoid stacking obstacles too closely at the top
-    attempts = 0
-    lane = int(window.Math.floor(window.Math.random() * LANE_COUNT))
-    while attempts < 5:
-        if not any(
-            o["lane"] == lane and o["y"] < OBSTACLE_HEIGHT * 2 for o in obstacles
-        ):
-            break
+    """Create one or two new obstacles with a slight chance of double‑spawn."""
+    num_to_spawn = 2 if window.Math.random() < 0.25 else 1  # 25 % chance of twin cars
+    for _ in range(num_to_spawn):
+        attempts = 0
         lane = int(window.Math.floor(window.Math.random() * LANE_COUNT))
-        attempts += 1
-    x = LANE_CENTERS[lane] - OBSTACLE_WIDTH / 2
-    y = -OBSTACLE_HEIGHT
-    speed = base_speed + window.Math.random() * 1  # small variation
-    color = OBSTACLE_COLORS[int(window.Math.floor(window.Math.random() * len(OBSTACLE_COLORS)))]
-    obstacles.append(
-        {
-            "lane": lane,
-            "x": x,
-            "y": y,
-            "width": OBSTACLE_WIDTH,
-            "height": OBSTACLE_HEIGHT,
-            "speed": speed,
-            "color": color,
-        }
-    )
+        while attempts < 5:
+            if not any(
+                o["lane"] == lane and o["y"] < OBSTACLE_HEIGHT * 1.5 for o in obstacles
+            ):
+                break
+            lane = int(window.Math.floor(window.Math.random() * LANE_COUNT))
+            attempts += 1
+        x = LANE_CENTERS[lane] - OBSTACLE_WIDTH / 2
+        y = -OBSTACLE_HEIGHT
+        speed = base_speed + window.Math.random() * 1  # small variation
+        color = OBSTACLE_COLORS[int(window.Math.floor(window.Math.random() * len(OBSTACLE_COLORS)))]
+        obstacles.append(
+            {
+                "lane": lane,
+                "x": x,
+                "y": y,
+                "width": OBSTACLE_WIDTH,
+                "height": OBSTACLE_HEIGHT,
+                "speed": speed,
+                "color": color,
+            }
+        )
 
 
 def spawn_decoration():
     """Spawn a decorative cactus or sign on either side, scrolling downward."""
     dtype = DEC_TYPES[int(window.Math.floor(window.Math.random() * len(DEC_TYPES)))]
     side = "left" if window.Math.random() < 0.5 else "right"
-    if side == "left":
-        x = DECOR_LEFT_X
-    else:
-        x = DECOR_RIGHT_X
+    x = DECOR_LEFT_X if side == "left" else DECOR_RIGHT_X
 
     if dtype == "cactus":
         width = 20
@@ -168,7 +168,7 @@ def spawn_decoration():
 
 
 def spawn_power_up():
-    """Spawn a shield power‐up in a random lane."""
+    """Spawn a shield power‑up in a random lane."""
     lane = int(window.Math.floor(window.Math.random() * LANE_COUNT))
     x = LANE_CENTERS[lane] - POWERUP_SIZE / 2
     y = -POWERUP_SIZE
@@ -187,7 +187,6 @@ def check_collisions():
     """Detect collisions between player and obstacles."""
     global game_over, has_shield, high_score
 
-    # Only check if game is still running
     if game_over:
         return
 
@@ -214,14 +213,12 @@ def check_collisions():
                 game_over = True
                 if score > high_score:
                     high_score = score
-                    window.localStorage.setItem(
-                        "desertCabHighScore", str(high_score)
-                    )
+                    window.localStorage.setItem("desertCabHighScore", str(high_score))
                 return
 
 
 def check_powerup_collision():
-    """Detect if player picks up a power‐up."""
+    """Detect if player picks up a power‑up."""
     global has_shield, shield_expire_time
 
     if game_over:
@@ -258,7 +255,6 @@ def difficulty_ramp():
     new_interval = max(spawn_interval - 100, MIN_SPAWN_INTERVAL)
     if new_interval != spawn_interval:
         spawn_interval = new_interval
-        # reset obstacle‐spawn timer to new interval
         if spawn_timer_id is not None:
             timer.clear_interval(spawn_timer_id)
         spawn_timer_id = timer.set_interval(spawn_obstacle, spawn_interval)
@@ -272,14 +268,14 @@ def increment_score():
 
 
 def draw_everything():
-    """Draw background, road, lanes, decorations, obstacles, player, power‐ups, UI, and day/night overlay."""
-    # Clear background with desert color then draw the road
+    """Draw background, road, lanes, decorations, obstacles, player, power‑ups, UI, and day/night overlay."""
+    # Background and road
     ctx.fillStyle = "yellow"
     ctx.fillRect(0, 0, WIDTH, HEIGHT)
-    ctx.fillStyle = "#555"  # road color
+    ctx.fillStyle = "#555"
     ctx.fillRect(DESERT_WIDTH, 0, WIDTH - DESERT_WIDTH * 2, HEIGHT)
 
-    # Draw lane separators (dashed white lines)
+    # Lane separators
     ctx.strokeStyle = "white"
     ctx.setLineDash([20, 15])
     ctx.lineWidth = 4
@@ -292,47 +288,44 @@ def draw_everything():
     ctx.setLineDash([])
     ctx.lineWidth = 1
 
-    # Draw decorations behind obstacles
+    # Decorations
     for dec in decorations:
         if dec["type"] == "cactus":
             ctx.fillStyle = dec["color"]
             ctx.fillRect(dec["x"], dec["y"], dec["width"], dec["height"])
         else:  # sign
-            # Draw post
             ctx.fillStyle = dec["color"]
             ctx.fillRect(dec["x"], dec["y"], dec["width"], dec["height"])
-            # Draw sign board above post
             ctx.fillStyle = "white"
             ctx.fillRect(dec["x"] - 10, dec["y"] - 20, 30, 20)
 
-    # Draw power‐ups
+    # Power‑ups
     for pu in power_ups:
         ctx.fillStyle = pu["color"]
         ctx.fillRect(pu["x"], pu["y"], pu["size"], pu["size"])
 
-    # Draw obstacles
+    # Obstacles
     for obs in obstacles:
         ctx.fillStyle = obs["color"]
         ctx.fillRect(obs["x"], obs["y"], obs["width"], obs["height"])
-        # wheels
+        # “Headlights” now at the TOP of the car rather than bottom
         ctx.fillStyle = "black"
         ctx.beginPath()
-        ctx.arc(obs["x"] + 10, obs["y"] + obs["height"] - 5, 5, 0, 2 * window.Math.PI)
+        ctx.arc(obs["x"] + 10, obs["y"] + 5, 5, 0, 2 * window.Math.PI)
         ctx.fill()
         ctx.beginPath()
-        ctx.arc(obs["x"] + obs["width"] - 10, obs["y"] + obs["height"] - 5, 5, 0, 2 * window.Math.PI)
+        ctx.arc(obs["x"] + obs["width"] - 10, obs["y"] + 5, 5, 0, 2 * window.Math.PI)
         ctx.fill()
 
-    # Draw player
+    # Player
     ctx.fillStyle = PLAYER_COLOR
     ctx.fillRect(player_x, player_y, PLAYER_WIDTH, PLAYER_HEIGHT)
-    # player wheels
     ctx.fillStyle = "black"
     ctx.beginPath()
-    ctx.arc(player_x + 10, player_y + PLAYER_HEIGHT - 5, 5, 0, 2 * window.Math.PI)
+    ctx.arc(player_x + 10, player_y + 5, 5, 0, 2 * window.Math.PI)
     ctx.fill()
     ctx.beginPath()
-    ctx.arc(player_x + PLAYER_WIDTH - 10, player_y + PLAYER_HEIGHT - 5, 5, 0, 2 * window.Math.PI)
+    ctx.arc(player_x + PLAYER_WIDTH - 10, player_y + 5, 5, 0, 2 * window.Math.PI)
     ctx.fill()
     if has_shield:
         ctx.strokeStyle = "cyan"
@@ -340,13 +333,13 @@ def draw_everything():
         ctx.strokeRect(player_x, player_y, PLAYER_WIDTH, PLAYER_HEIGHT)
         ctx.lineWidth = 1
 
-    # Draw score & high score
+    # Score UI
     ctx.font = "20px sans-serif"
     ctx.fillStyle = "white"
     ctx.fillText(f"Score: {score}", 10, 30)
     ctx.fillText(f"High Score: {high_score}", 10, 60)
 
-    # If game over, overlay a semi‐transparent rectangle and text
+    # Game‑over overlay
     if game_over:
         ctx.fillStyle = "rgba(0, 0, 0, 0.6)"
         ctx.fillRect(0, HEIGHT / 2 - 40, WIDTH, 80)
@@ -357,74 +350,60 @@ def draw_everything():
         ctx.fillStyle = "white"
         ctx.fillText("Press R to Restart", WIDTH / 2 - 90, HEIGHT / 2 + 40)
 
-    # Day‐Night overlay (darken screen if in “night” half of cycle)
+    # Day/Night overlay
     now = window.Date.now()
     elapsed = now - start_time
     cycle_pos = (elapsed % DAY_NIGHT_CYCLE) / DAY_NIGHT_CYCLE
-    # cycle_pos ∈ [0,1). If ≥0.5 → night
     if cycle_pos >= 0.5:
         ctx.fillStyle = "rgba(0, 0, 0, 0.5)"
         ctx.fillRect(0, 0, WIDTH, HEIGHT)
 
 
 def update(dt=None):
-    """Main game‐loop: move everything, check collisions, and redraw."""
-    global game_over, has_shield
+    """Main game‑loop: move everything, check collisions, and redraw."""
+    global game_over, has_shield, player_x, player_y
 
     if game_over:
-        # Even if game is over, we still draw once more to show the Game Over overlay
         draw_everything()
         return
 
-    # Move obstacles down
+    # Move obstacles
     for obs in obstacles:
         obs["y"] += obs["speed"]
-    # Remove obstacles that left the screen
     obstacles[:] = [o for o in obstacles if o["y"] < HEIGHT + 50]
 
-    # Move decorations
+    # Move scenery
     for dec in decorations:
         dec["y"] += base_speed
     decorations[:] = [d for d in decorations if d["y"] < HEIGHT + 50]
 
-    # Move power‐ups
+    # Move power‑ups
     for pu in power_ups:
         pu["y"] += base_speed
     power_ups[:] = [p for p in power_ups if p["y"] < HEIGHT + 50]
 
-    # Smooth player movement based on keys held
-    move_x = 0
-    move_y = 0
-    if "ArrowLeft" in keys_down:
-        move_x -= PLAYER_MOVE_STEP
-    if "ArrowRight" in keys_down:
-        move_x += PLAYER_MOVE_STEP
-    if "ArrowUp" in keys_down:
-        move_y -= PLAYER_MOVE_STEP
-    if "ArrowDown" in keys_down:
-        move_y += PLAYER_MOVE_STEP
+    # Player movement from keys
+    move_x = ("ArrowRight" in keys_down) - ("ArrowLeft" in keys_down)
+    move_y = ("ArrowDown" in keys_down) - ("ArrowUp" in keys_down)
     if move_x or move_y:
-        global player_x, player_y
-        player_x += move_x
-        player_y += move_y
+        player_x += move_x * PLAYER_MOVE_STEP
+        player_y += move_y * PLAYER_MOVE_STEP
+        # Bounds
         if player_x < DESERT_WIDTH:
             player_x = DESERT_WIDTH
         if player_x > WIDTH - DESERT_WIDTH - PLAYER_WIDTH:
             player_x = WIDTH - DESERT_WIDTH - PLAYER_WIDTH
         if player_y < 0:
             player_y = 0
-        if player_y > HEIGHT - PLAYER_HEIGHT:
-            player_y = HEIGHT - PLAYER_HEIGHT
+        if player_y > HEIGHT - PLAYER_HEIGHT - BOTTOM_MARGIN:
+            player_y = HEIGHT - PLAYER_HEIGHT - BOTTOM_MARGIN
 
-    # Collision checks
+    # Collision checks & shield expiration
     check_collisions()
     check_powerup_collision()
-
-    # Shield expiration
     if has_shield and window.Date.now() >= shield_expire_time:
         has_shield = False
 
-    # Redraw everything
     draw_everything()
 
 
@@ -460,7 +439,7 @@ def restart():
 
     start_time = window.Date.now()
 
-    # Re‐start timers
+    # Timers
     game_loop_id = timer.set_interval(update, 16)  # ~60 FPS
     spawn_timer_id = timer.set_interval(spawn_obstacle, spawn_interval)
     dec_timer_id = timer.set_interval(spawn_decoration, DECOR_SPAWN_INTERVAL)
@@ -468,12 +447,11 @@ def restart():
     diff_timer_id = timer.set_interval(difficulty_ramp, DIFFICULTY_INTERVAL)
     score_timer_id = timer.set_interval(increment_score, SCORE_INTERVAL)
 
-# Immediately draw the first frame
     draw_everything()
 
 # === Input Handling ===
+
 def on_keydown(evt):
-    """Track keys being pressed for smooth movement."""
     key = evt.key
     keys_down.add(key)
     if (key == "r" or key == "R") and game_over:
@@ -481,16 +459,15 @@ def on_keydown(evt):
 
 
 def on_keyup(evt):
-    """Remove keys from the pressed set when released."""
     key = evt.key
-    if key in keys_down:
-        keys_down.remove(key)
+    keys_down.discard(key)
 
 
 document.bind("keydown", on_keydown)
 document.bind("keyup", on_keyup)
 
-
-# Expose game start to JavaScript. The game will begin when
-# window.start_game() is called from JS after user interaction.
+# Expose game start
 window.start_game = restart
+
+# Draw first frame so the player sees something when the page loads
+draw_everything()
