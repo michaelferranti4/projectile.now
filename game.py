@@ -2,13 +2,14 @@ from browser import document, timer, window
 
 # === Constants ===
 WIDTH           = 800
-LANE_COUNT      = 3
+LANE_COUNT      = 4
+
 LANE_CENTERS    = [WIDTH / 6, WIDTH / 2, WIDTH * 5 / 6]
 
 size_multi= 1.3
 # ⇢ Bigger cars & player
-PLAYER_WIDTH    = 70 * size_multi          # was 50
-PLAYER_HEIGHT   = 140 * size_multi         # was 100
+PLAYER_WIDTH    = 70          # was 50
+PLAYER_HEIGHT   = 140         # was 100
 PLAYER_COLOR    = "yellow"
 BOTTOM_MARGIN   = 10
 PLAYER_MOVE_STEP= 20
@@ -79,7 +80,28 @@ except Exception:
     high_score = 0
 
 # === Helpers ===============================================================
+def recalc_lane_geometry():
+    """
+    Re-compute everything that depends on the number / width of lanes.
+    Call once at start-up *and* from update_dimensions() if the canvas resizes.
+    """
+    global lane_w, LANE_CENTERS, PLAYER_WIDTH, PLAYER_HEIGHT
+    lane_w       = (WIDTH - DESERT_WIDTH * 2) / LANE_COUNT
+    LANE_CENTERS = [
+        DESERT_WIDTH + lane_w / 2 + i * lane_w
+        for i in range(LANE_COUNT)
+    ]
 
+    # Cars should almost fill their lane (≈ 85 %)
+    PLAYER_WIDTH  = int(lane_w * 0.85)
+    PLAYER_HEIGHT = int(PLAYER_WIDTH * 2)      # keep the 1 : 2 aspect ratio
+
+    # Obstacles match the player’s footprint
+    global OBSTACLE_WIDTH, OBSTACLE_HEIGHT
+    OBSTACLE_WIDTH  = PLAYER_WIDTH
+    OBSTACLE_HEIGHT = PLAYER_HEIGHT
+
+recalc_lane_geometry()
 def update_player_pos():
     """Recompute player_x from player_lane."""
     global player_x
@@ -110,6 +132,7 @@ def update_dimensions(evt=None):
 
     # Keep the player sitting on the visible road
     reset_player_pos()
+    recalc_lane_geometry()
     draw_everything()
 def boxes_intersect(x1, y1, w1, h1, x2, y2, w2, h2, margin=0):
     return (
@@ -218,7 +241,7 @@ def draw_everything():
     ctx.setLineDash([20, 15])
     ctx.lineWidth = 4
     for i in range(1, LANE_COUNT):
-        x = (WIDTH / LANE_COUNT) * i
+        x = DESERT_WIDTH + lane_w * i  # use the real road, not the full canvas
         ctx.beginPath()
         ctx.moveTo(x, 0)
         ctx.lineTo(x, HEIGHT)
@@ -334,7 +357,7 @@ def restart():
         if tid is not None:
             try: timer.clear_interval(tid)
             except Exception: pass
-
+    recalc_lane_geometry()
     # Reset game state
     obstacles, decorations, power_ups = [], [], []
     score, game_over = 0, False
