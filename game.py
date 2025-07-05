@@ -272,9 +272,9 @@ def draw_everything():
 
     # Day/night overlay
     elapsed = window.Date.now() - start_time
-    if (elapsed % DAY_NIGHT_CYCLE) >= DAY_NIGHT_CYCLE / 2:
-        ctx.fillStyle = "rgba(0,0,0,0.5)"
-        ctx.fillRect(0, 0, WIDTH, HEIGHT)
+    # if (elapsed % DAY_NIGHT_CYCLE) >= DAY_NIGHT_CYCLE / 2:
+    #     ctx.fillStyle = "rgba(0,0,0,0.5)"
+    #     ctx.fillRect(0, 0, WIDTH, HEIGHT)
 
 # ---------------- main loop -------------------------------------------------
 
