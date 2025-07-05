@@ -1,15 +1,16 @@
 from browser import document, timer, window
 
 # === Constants ===
-WIDTH = 800                             # fixed game width
-LANE_COUNT = 3
-LANE_CENTERS = [WIDTH / 6, WIDTH / 2, WIDTH * 5 / 6]
+WIDTH           = 800
+LANE_COUNT      = 3
+LANE_CENTERS    = [WIDTH / 6, WIDTH / 2, WIDTH * 5 / 6]
 
-PLAYER_WIDTH = 50
-PLAYER_HEIGHT = 100
-PLAYER_COLOR = "yellow"
-BOTTOM_MARGIN = 10
-PLAYER_MOVE_STEP = 20
+# ⇢ Bigger cars & player
+PLAYER_WIDTH    = 70          # was 50
+PLAYER_HEIGHT   = 140         # was 100
+PLAYER_COLOR    = "yellow"
+BOTTOM_MARGIN   = 10
+PLAYER_MOVE_STEP= 20
 
 OBSTACLE_WIDTH = PLAYER_WIDTH
 OBSTACLE_HEIGHT = PLAYER_HEIGHT
@@ -27,12 +28,12 @@ COLLISION_MARGIN = 2
 DEC_TYPES = ["cactus", "sign"]
 
 # Difficulty / timing
-INITIAL_SPEED = 3
-INITIAL_SPAWN_INTERVAL = 1500
-MIN_SPAWN_INTERVAL = 500
+INITIAL_SPEED = 5
+INITIAL_SPAWN_INTERVAL = 1350
+MIN_SPAWN_INTERVAL = 400
 DECOR_SPAWN_INTERVAL = 800
 POWERUP_SPAWN_INTERVAL = 15000
-DIFFICULTY_INTERVAL = 20000
+DIFFICULTY_INTERVAL = 8000
 SCORE_INTERVAL = 1000
 DAY_NIGHT_CYCLE = 60000
 
@@ -191,13 +192,12 @@ def check_powerup_collision():
 
 def difficulty_ramp():
     global base_speed, spawn_interval, spawn_timer_id
-    base_speed += 1
-    new_interval = max(spawn_interval - 100, MIN_SPAWN_INTERVAL)
+    base_speed += 1                     # same increment, happens twice as often
+    new_interval = max(spawn_interval - 150, MIN_SPAWN_INTERVAL)  # drops quicker
     if new_interval != spawn_interval:
         spawn_interval = new_interval
         timer.clear_interval(spawn_timer_id)
         spawn_timer_id = timer.set_interval(spawn_obstacle, spawn_interval)
-
 def increment_score():
     global score
     if not game_over:
@@ -258,9 +258,17 @@ def draw_everything():
         ctx.lineWidth = 1
 
     # Score UI
-    ctx.font = "20px sans-serif"; ctx.fillStyle = "white"
-    ctx.fillText(f"Score: {score}",      10, 30)
-    ctx.fillText(f"High Score: {high_score}", 10, 60)
+    ctx.font = "20px sans-serif"
+
+    def draw_outlined(txt, x, y):
+        ctx.lineWidth = 3
+        ctx.strokeStyle = "black"
+        ctx.strokeText(txt, x, y)
+        ctx.fillStyle = "white"
+        ctx.fillText(txt, x, y)
+
+    draw_outlined(f"Score: {score}", 10, 30)
+    draw_outlined(f"High Score: {high_score}", 10, 60)
 
     # Game-over banner
     if game_over:

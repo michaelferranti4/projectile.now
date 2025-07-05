@@ -11,5 +11,6 @@ body {
 
 canvas {
   border: 2px solid yellow;
-  display: block; /* Remove default inline whitespace */
+  display: block;
+  height: 90vh;          /* ⇢ make the play-field taller */
 }
