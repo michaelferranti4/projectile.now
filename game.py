@@ -126,6 +126,7 @@ def update_dimensions(evt=None):
     update_player_pos()      # keep the cab in the correct lane
     reset_player_pos()       # sit it on the new bottom edge
     draw_everything()
+window.update_dimensions = update_dimensions
 def boxes_intersect(x1, y1, w1, h1, x2, y2, w2, h2, margin=0):
     return (
         x1 + margin < x2 + w2 - margin
