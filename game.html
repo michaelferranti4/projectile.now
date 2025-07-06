@@ -55,7 +55,7 @@
     <audio id="bg-music" src="cab.mp3" loop preload="auto"></audio>
 
     <!-- Canvas for the game -->
-    <canvas id="gameCanvas" width="800" height="900"></canvas>
+    <canvas id="gameCanvas" width="800" height="600"></canvas>
 
     <!-- The Python game logic (Brython) -->
     <script type="text/python" src="game.py"></script>
@@ -63,10 +63,6 @@
     <script>
       const startBtn = document.getElementById('start-btn');
       const music = document.getElementById('bg-music');
-      window.addEventListener('resize',             () => window.update_dimensions());
-      document.addEventListener('fullscreenchange', () => window.update_dimensions());
-      document.addEventListener('webkitfullscreenchange', () => window.update_dimensions());
-
 
       startBtn.addEventListener('click', () => {
         // Play audio on click (synchronous user gesture)
@@ -87,8 +83,6 @@
           window.start_game();
         }
         document.getElementById('start-overlay').style.display = 'none';
-        window.update_dimensions();
-
       });
 
       // Swipe controls for mobile
