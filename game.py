@@ -1,7 +1,7 @@
 from browser import document, timer, window
 
 # === Constants ===
-WIDTH           = 800
+
 LANE_COUNT      = 4
 
 LANE_CENTERS    = [WIDTH / 6, WIDTH / 2, WIDTH * 5 / 6]
@@ -43,6 +43,7 @@ DAY_NIGHT_CYCLE = 60000
 canvas = document["gameCanvas"]
 ctx = canvas.getContext("2d")
 
+WIDTH           = 0
 HEIGHT = 0                # will be set in update_dimensions()
 player_lane = 1            # 0 = left, 1 = centre, 2 = right
 player_x = 0               # updated by update_player_pos()
@@ -86,19 +87,14 @@ def recalc_lane_geometry():
     Call once at start-up *and* from update_dimensions() if the canvas resizes.
     """
     global lane_w, LANE_CENTERS, PLAYER_WIDTH, PLAYER_HEIGHT
-    lane_w       = (WIDTH - DESERT_WIDTH * 2) / LANE_COUNT
-    LANE_CENTERS = [
-        DESERT_WIDTH + lane_w / 2 + i * lane_w
-        for i in range(LANE_COUNT)
-    ]
+    lane_w = (WIDTH - DESERT_WIDTH * 2) / LANE_COUNT
+    LANE_CENTERS = [DESERT_WIDTH + lane_w / 2 + i * lane_w for i in range(LANE_COUNT)]
 
-    # Cars should almost fill their lane (≈ 85 %)
-    PLAYER_WIDTH  = int(lane_w * 0.7)
-    PLAYER_HEIGHT = int(PLAYER_WIDTH * 1.75)      # keep the 1 : 2 aspect ratio
+    PLAYER_WIDTH = int(lane_w * 0.70)  # 70 % of lane keeps a nice margin
+    PLAYER_HEIGHT = int(PLAYER_WIDTH * 1.75)
 
-    # Obstacles match the player’s footprint
     global OBSTACLE_WIDTH, OBSTACLE_HEIGHT
-    OBSTACLE_WIDTH  = PLAYER_WIDTH
+    OBSTACLE_WIDTH = PLAYER_WIDTH
     OBSTACLE_HEIGHT = PLAYER_HEIGHT
 
 recalc_lane_geometry()
@@ -113,25 +109,22 @@ def reset_player_pos():
     player_y = HEIGHT - PLAYER_HEIGHT - BOTTOM_MARGIN
 
 def update_dimensions(evt=None):
-    """
-    Keeps three things in lock-step:
-    1. The CSS layout height of <canvas>   (what the browser draws)
-    2. canvas.height                       (the pixel buffer Brython draws into)
-    3. our global HEIGHT variable          (what the game logic uses)
-    """
-    global HEIGHT
-    # Real pixels the canvas occupies on the page *right now*
+    global WIDTH, HEIGHT
 
-    #HEIGHT = canvas.getBoundingClientRect().height
+    # ❶  Read the FINAL viewport size (after any browser chrome settles)
+    WIDTH  = window.innerWidth           # full width; use *0.9 if you like margins*
+    HEIGHT = window.innerHeight
 
-    # Make sure the element itself stretches to the viewport
-    # (important after device-rotation / virtual-keyboard pop-ups etc.)
-    HEIGHT = window.innerHeight  # <— use the final value first
+    # ❷  Resize the bitmap and the element to match 1 CSS px = 1 canvas px
+    canvas.width  = WIDTH
+    canvas.height = HEIGHT
+    canvas.style.width  = f"{WIDTH}px"
     canvas.style.height = f"{HEIGHT}px"
-    canvas.height = HEIGHT  # bitmap matches element size
 
-    reset_player_pos()  # keep cab on the road
-    recalc_lane_geometry()  # lane widths depend on canvas size
+    # ❸  Every dimension that depends on WIDTH/HEIGHT must be recalculated
+    recalc_lane_geometry()   # lane_w, lane centres, car sizes …
+    update_player_pos()      # keep the cab in the correct lane
+    reset_player_pos()       # sit it on the new bottom edge
     draw_everything()
 def boxes_intersect(x1, y1, w1, h1, x2, y2, w2, h2, margin=0):
     return (
