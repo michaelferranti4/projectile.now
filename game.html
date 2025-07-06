@@ -83,6 +83,8 @@
           window.start_game();
         }
         document.getElementById('start-overlay').style.display = 'none';
+        if (window.update_dimensions) { window.update_dimensions(); } // <- add
+
       });
 
       // Swipe controls for mobile

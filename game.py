@@ -121,18 +121,17 @@ def update_dimensions(evt=None):
     """
     global HEIGHT
     # Real pixels the canvas occupies on the page *right now*
-    HEIGHT = canvas.getBoundingClientRect().height
+
+    #HEIGHT = canvas.getBoundingClientRect().height
 
     # Make sure the element itself stretches to the viewport
     # (important after device-rotation / virtual-keyboard pop-ups etc.)
-    canvas.style.height = f"{window.innerHeight}px"
+    HEIGHT = window.innerHeight  # <— use the final value first
+    canvas.style.height = f"{HEIGHT}px"
+    canvas.height = HEIGHT  # bitmap matches element size
 
-    # Match the pixel buffer to the element’s new size
-    canvas.height = HEIGHT
-
-    # Keep the player sitting on the visible road
-    reset_player_pos()
-    recalc_lane_geometry()
+    reset_player_pos()  # keep cab on the road
+    recalc_lane_geometry()  # lane widths depend on canvas size
     draw_everything()
 def boxes_intersect(x1, y1, w1, h1, x2, y2, w2, h2, margin=0):
     return (
@@ -318,7 +317,7 @@ def update(dt=None):
 
     # Move entities
     for obs in obstacles:  obs["y"] += obs["speed"]
-    obstacles[:] = [o for o in obstacles if o["y"] < HEIGHT + 50]
+    obstacles[:] = [o for o in obstacles if o["y"] < HEIGHT - 20]
 
     for dec in decorations: dec["y"] += base_speed
     decorations[:] = [d for d in decorations if d["y"] < HEIGHT + 50]
