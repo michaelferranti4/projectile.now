@@ -5,6 +5,7 @@ from browser import document, timer, window
 LANE_COUNT      = 4
 
 LANE_CENTERS    = [WIDTH / 6, WIDTH / 2, WIDTH * 5 / 6]
+WIDTH = 0
 
 size_multi= .5
 # ⇢ Bigger cars & player
@@ -43,7 +44,6 @@ DAY_NIGHT_CYCLE = 60000
 canvas = document["gameCanvas"]
 ctx = canvas.getContext("2d")
 
-WIDTH           = 0
 HEIGHT = 0                # will be set in update_dimensions()
 player_lane = 1            # 0 = left, 1 = centre, 2 = right
 player_x = 0               # updated by update_player_pos()
