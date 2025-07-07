@@ -94,6 +94,7 @@
       });
        if ('ontouchstart' in window) {
         const touch_target = { x: null, y: null };
+        window.touch_target = touch_target;
         const TOUCH_MAX_SPEED = PLAYER_MOVE_STEP * 2;
 
         // update() loop: nudge the cab toward touch_target
