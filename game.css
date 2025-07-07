@@ -1,16 +1,17 @@
 /* game.css */
-html, body {
-  margin: 0;
-  height: 100%;
-}
-
 body {
-  background-color: #e0c96b;   /* desert background */
+  margin: 0;
+  padding: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background-color: #e0c96b; /* desert background */
 }
 
 canvas {
-  display: block;
   border: 2px solid yellow;
-  width: 800px;    /* keep your fixed game width */
-  height: 100%;    /* JS will set the exact pixel value */
+  display: block;
+  height: 100%;
+ /*  height: 90vh;          ⇢ make the play-field taller */
 }
