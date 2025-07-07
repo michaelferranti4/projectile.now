@@ -350,7 +350,23 @@ def update(dt=None):
     draw_everything()
 
 # ---------------- restart / setup ------------------------------------------
+last_ts = 0
 
+def game_loop(ts):
+    global last_ts
+    # on the very first frame, just initialize last_ts
+    if not last_ts:
+        last_ts = ts
+    # compute how much real time has passed
+    dt = ts - last_ts
+    last_ts = ts
+
+    # run your existing update & draw at the right speed
+    update(dt)
+    draw_everything()
+
+    # queue up the next frame
+    window.requestAnimationFrame(game_loop)
 def restart():
     global obstacles, decorations, power_ups, score, game_over
     global base_speed, spawn_interval, has_shield, shield_expire_time, start_time
@@ -373,7 +389,9 @@ def restart():
     start_time = window.Date.now()
 
     # Timers
-    game_loop_id   = timer.set_interval(update, 16)
+    global last_ts
+    last_ts = window.performance.now()
+    window.requestAnimationFrame(game_loop)
     spawn_timer_id = timer.set_interval(spawn_obstacle, spawn_interval)
     dec_timer_id   = timer.set_interval(spawn_decoration, DECOR_SPAWN_INTERVAL)
     power_timer_id = timer.set_interval(spawn_power_up, POWERUP_SPAWN_INTERVAL)
