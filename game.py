@@ -289,12 +289,23 @@ def draw_everything():
 
     # Game-over banner
     if game_over:
-        ctx.fillStyle = "rgba(0,0,0,0.6)"; ctx.fillRect(0, HEIGHT/2 - 40, WIDTH, 80)
-        ctx.fillStyle = "red"; ctx.font = "40px sans-serif"
-        ctx.fillText("🚨 GAME OVER 🚨", WIDTH/2 - 160, HEIGHT/2 + 10)
-        ctx.font = "20px sans-serif"; ctx.fillStyle = "white"
-        ctx.fillText("Press R to Restart", WIDTH/2 - 90, HEIGHT/2 + 40)
+        # make the backdrop a bit taller
+        ctx.fillStyle = "rgba(0,0,0,0.6)"
+        ctx.fillRect(0, HEIGHT / 2 - 50, WIDTH, 120)
 
+        # big GAME OVER
+        ctx.fillStyle = "red"
+        ctx.font = "40px sans-serif"
+        ctx.fillText("🚨 GAME OVER 🚨", WIDTH / 2 - 160, HEIGHT / 2 + 10)
+
+        # your score, smaller
+        ctx.font = "24px sans-serif"
+        ctx.fillStyle = "white"
+        ctx.fillText(f"Your score: {score}", WIDTH / 2 - 80, HEIGHT / 2 + 45)
+
+        # restart hint
+        ctx.font = "20px sans-serif"
+        ctx.fillText("Press R to Restart", WIDTH / 2 - 90, HEIGHT / 2 + 75)
     # Day/night overlay
     elapsed = window.Date.now() - start_time
     # if (elapsed % DAY_NIGHT_CYCLE) >= DAY_NIGHT_CYCLE / 2:
