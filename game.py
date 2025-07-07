@@ -113,24 +113,17 @@ def reset_player_pos():
     player_y = HEIGHT - PLAYER_HEIGHT - BOTTOM_MARGIN
 
 def update_dimensions(evt=None):
-    """
-    Keeps three things in lock-step:
-    1. The CSS layout height of <canvas>   (what the browser draws)
-    2. canvas.height                       (the pixel buffer Brython draws into)
-    3. our global HEIGHT variable          (what the game logic uses)
-    """
     global HEIGHT
-    # Real pixels the canvas occupies on the page *right now*
-    HEIGHT = canvas.getBoundingClientRect().height
 
-    # Make sure the element itself stretches to the viewport
-    # (important after device-rotation / virtual-keyboard pop-ups etc.)
+    # 1 Stretch the element _first_
     canvas.style.height = f"{window.innerHeight}px"
 
-    # Match the pixel buffer to the element’s new size
+    # 2 NOW measure the real, final height
+    HEIGHT = canvas.getBoundingClientRect().height
+
+    # 3 Match the pixel buffer to the element
     canvas.height = HEIGHT
 
-    # Keep the player sitting on the visible road
     reset_player_pos()
     recalc_lane_geometry()
     draw_everything()
