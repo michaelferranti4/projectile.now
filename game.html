@@ -92,32 +92,6 @@
         }
         document.getElementById('start-overlay').style.display = 'none';
       });
-       if ('ontouchstart' in window) {
-        const touch_target = { x: null, y: null };
-        const TOUCH_MAX_SPEED = PLAYER_MOVE_STEP * 2;
-
-        // update() loop: nudge the cab toward touch_target
-        function handleTouchMovement() {
-          if (touch_target.x !== null) {
-
-            const rect = canvas.getBoundingClientRect();
-            const cabCenterX = player_x + PLAYER_WIDTH/2 + rect.left;
-            const cabCenterY = player_y + PLAYER_HEIGHT/2 + rect.top;
-            let dx = touch_target.x - cabCenterX;
-            let dy = touch_target.y - cabCenterY;
-            const dist = Math.hypot(dx, dy);
-            if (dist > 1) {
-              const speed = TOUCH_MAX_SPEED;
-              player_x += (dx / dist) * speed;
-              player_y += (dy / dist) * speed;
-              // clamp to road bounds
-              player_x = Math.max(DESERT_WIDTH,
-                            Math.min(player_x, WIDTH - DESERT_WIDTH - PLAYER_WIDTH));
-              player_y = Math.max(0,
-                            Math.min(player_y, HEIGHT - PLAYER_HEIGHT - BOTTOM_MARGIN));
-            }
-          }
-        }
 
         // Hook it into your game‐loop just before move‐entities:
         const originalUpdate = window.update;

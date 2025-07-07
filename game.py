@@ -293,7 +293,7 @@ def draw_everything():
         ctx.fillStyle = "rgba(0,0,0,0.6)"
         ctx.fillRect(0, HEIGHT / 2 - 40, WIDTH, 120)
 
-        # big GAME OVER
+        # big GAME OVERa
         ctx.fillStyle = "red"
         ctx.font = "40px sans-serif"
         ctx.fillText("🚨 GAME OVER 🚨", WIDTH / 2 - 160, HEIGHT / 2 + 10)
@@ -383,7 +383,24 @@ def restart():
     draw_everything()
 
 # ---------------- input -----------------------------------------------------
+def on_touch(evt):
+    evt.preventDefault()
+    # get the screen x of the first touch
+    t = evt.touches[0]
+    x = t.clientX
+    # decide left or right half
+    mid = window.innerWidth / 2
+    global player_lane
+    if x < mid:
+        player_lane = max(0, player_lane - 1)
+    else:
+        player_lane = min(LANE_COUNT - 1, player_lane + 1)
+    # update and redraw
+    update_player_pos()
+    draw_everything()
 
+# bind it to the canvas
+document["gameCanvas"].bind("touchstart", on_touch)
 def on_keydown(evt):
     key = evt.key
     keys_down.add(key)
