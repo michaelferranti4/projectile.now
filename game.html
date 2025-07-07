@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
+
     <meta charset="utf-8" />
     <title>Desert Cab Dash</title>
     <link rel="stylesheet" href="game.css" />
@@ -26,6 +27,8 @@
         margin: 0 auto;
       }
     </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
   </head>
 
   <body onload="brython()">
@@ -56,13 +59,16 @@
 
     <!-- Canvas for the game -->
     <canvas id="gameCanvas" width="800" height="900"></canvas>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 
     <!-- The Python game logic (Brython) -->
     <script type="text/python" src="game.py"></script>
 
     <script>
+      const canvas = document.getElementById("gameCanvas");
+      const PLAYER_MOVE_STEP = 20;
+      const DESERT_WIDTH     = 80;
+      const BOTTOM_MARGIN    = 10;
       const startBtn = document.getElementById('start-btn');
       const music = document.getElementById('bg-music');
 
@@ -86,44 +92,63 @@
         }
         document.getElementById('start-overlay').style.display = 'none';
       });
+       if ('ontouchstart' in window) {
+        const touch_target = { x: null, y: null };
+        const TOUCH_MAX_SPEED = PLAYER_MOVE_STEP * 2;
 
-      // Swipe controls for mobile
-      let touchStartX = null;
-      let touchStartY = null;
-      document.addEventListener('touchstart', (e) => {
-        const t = e.changedTouches[0];
-        touchStartX = t.screenX;
-        touchStartY = t.screenY;
-      });
-      document.addEventListener('touchend', (e) => {
-        if (touchStartX === null || touchStartY === null) return;
-        const t = e.changedTouches[0];
-        const dx = t.screenX - touchStartX;
-        const dy = t.screenY - touchStartY;
-        if (Math.abs(dx) > Math.abs(dy)) {
-          if (dx > 30) {
-            document.dispatchEvent(
-              new KeyboardEvent('keydown', { key: 'ArrowRight' })
-            );
-          } else if (dx < -30) {
-            document.dispatchEvent(
-              new KeyboardEvent('keydown', { key: 'ArrowLeft' })
-            );
-          }
-        } else {
-          if (dy > 30) {
-            document.dispatchEvent(
-              new KeyboardEvent('keydown', { key: 'ArrowDown' })
-            );
-          } else if (dy < -30) {
-            document.dispatchEvent(
-              new KeyboardEvent('keydown', { key: 'ArrowUp' })
-            );
+        // update() loop: nudge the cab toward touch_target
+        function handleTouchMovement() {
+          if (touch_target.x !== null) {
+
+            const rect = canvas.getBoundingClientRect();
+            const cabCenterX = player_x + PLAYER_WIDTH/2 + rect.left;
+            const cabCenterY = player_y + PLAYER_HEIGHT/2 + rect.top;
+            let dx = touch_target.x - cabCenterX;
+            let dy = touch_target.y - cabCenterY;
+            const dist = Math.hypot(dx, dy);
+            if (dist > 1) {
+              const speed = TOUCH_MAX_SPEED;
+              player_x += (dx / dist) * speed;
+              player_y += (dy / dist) * speed;
+              // clamp to road bounds
+              player_x = Math.max(DESERT_WIDTH,
+                            Math.min(player_x, WIDTH - DESERT_WIDTH - PLAYER_WIDTH));
+              player_y = Math.max(0,
+                            Math.min(player_y, HEIGHT - PLAYER_HEIGHT - BOTTOM_MARGIN));
+            }
           }
         }
-        touchStartX = null;
-        touchStartY = null;
-      });
+
+        // Hook it into your game‐loop just before move‐entities:
+        const originalUpdate = window.update;
+        window.update = function(dt) {
+          handleTouchMovement();
+          originalUpdate(dt);
+        };
+
+        // Track finger position
+        canvas.addEventListener("touchstart", e => {
+          e.preventDefault();
+          const t = e.changedTouches[0];
+          touch_target.x = t.clientX;
+          touch_target.y = t.clientY;
+        }, { passive: false });
+
+        canvas.addEventListener("touchmove", e => {
+          e.preventDefault();
+          const t = e.changedTouches[0];
+          touch_target.x = t.clientX;
+          touch_target.y = t.clientY;
+        }, { passive: false });
+
+        canvas.addEventListener("touchend", e => {
+          e.preventDefault();
+          touch_target.x = touch_target.y = null;
+        }, { passive: false });
+      }
+
     </script>
   </body>
 </html>
+
+

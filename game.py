@@ -39,6 +39,9 @@ DIFFICULTY_INTERVAL = 8000
 SCORE_INTERVAL = 1000
 DAY_NIGHT_CYCLE = 60000
 
+
+touch_target = {"x": None, "y": None}
+TOUCH_MAX_SPEED = PLAYER_MOVE_STEP * 2
 # === Global State ===
 canvas = document["gameCanvas"]
 ctx = canvas.getContext("2d")
