@@ -385,21 +385,24 @@ def restart():
 # ---------------- input -----------------------------------------------------
 def on_touch(evt):
     evt.preventDefault()
-    # get the screen x of the first touch
+    global player_lane, game_over
+    # if we’re on the game-over screen, restart immediately
+    if game_over:
+        restart()
+        return
+
+    # otherwise treat it as a lane-change tap
     t = evt.touches[0]
     x = t.clientX
-    # decide left or right half
     mid = window.innerWidth / 2
-    global player_lane
     if x < mid:
         player_lane = max(0, player_lane - 1)
     else:
         player_lane = min(LANE_COUNT - 1, player_lane + 1)
-    # update and redraw
+
     update_player_pos()
     draw_everything()
 
-# bind it to the canvas
 document["gameCanvas"].bind("touchstart", on_touch)
 def on_keydown(evt):
     key = evt.key
