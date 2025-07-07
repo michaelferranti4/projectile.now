@@ -113,21 +113,20 @@ def reset_player_pos():
     player_y = HEIGHT - PLAYER_HEIGHT - BOTTOM_MARGIN
 
 def update_dimensions(evt=None):
-    global HEIGHT
+    global HEIGHT, WIDTH
+    # Stretch the HTML element to fill the viewport
+    canvas.style.width  = f"{window.innerWidth}px"
+    canvas.style.height = f"{window.innerHeight}px"
+    # Match the drawing buffer to that new size
+    canvas.width  = window.innerWidth
+    canvas.height = window.innerHeight
 
-    # 1. Take the viewport’s current pixel height
-    HEIGHT = window.innerHeight
-
-    # 2. Make the DOM element exactly that tall …
-    canvas.style.height = f"{HEIGHT}px"
-
-    # 3. … and give the backing store the same size
-    canvas.height = HEIGHT
+    HEIGHT = canvas.height
+    WIDTH  = canvas.width
 
     reset_player_pos()
     recalc_lane_geometry()
     draw_everything()
-    #test
 def boxes_intersect(x1, y1, w1, h1, x2, y2, w2, h2, margin=0):
     return (
         x1 + margin < x2 + w2 - margin
