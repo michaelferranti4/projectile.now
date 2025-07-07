@@ -93,33 +93,6 @@
         document.getElementById('start-overlay').style.display = 'none';
       });
 
-        // Hook it into your game‐loop just before move‐entities:
-        const originalUpdate = window.update;
-        window.update = function(dt) {
-          handleTouchMovement();
-          originalUpdate(dt);
-        };
-
-        // Track finger position
-        canvas.addEventListener("touchstart", e => {
-          e.preventDefault();
-          const t = e.changedTouches[0];
-          touch_target.x = t.clientX;
-          touch_target.y = t.clientY;
-        }, { passive: false });
-
-        canvas.addEventListener("touchmove", e => {
-          e.preventDefault();
-          const t = e.changedTouches[0];
-          touch_target.x = t.clientX;
-          touch_target.y = t.clientY;
-        }, { passive: false });
-
-        canvas.addEventListener("touchend", e => {
-          e.preventDefault();
-          touch_target.x = touch_target.y = null;
-        }, { passive: false });
-      }
 
     </script>
   </body>
