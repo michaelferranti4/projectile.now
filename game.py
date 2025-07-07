@@ -316,9 +316,38 @@ def draw_everything():
     #     ctx.fillRect(0, 0, WIDTH, HEIGHT)
 
 # ---------------- main loop -------------------------------------------------
+def handle_touch_movement():
+    tt = window.touch_target       # the JS object you exposed
+    if tt.x is None:
+        return
+
+    # map CSS‐pixel touch → canvas‐pixel coordinates
+    rect   = document["gameCanvas"].getBoundingClientRect()
+    scaleX = canvas.width  / rect.width
+    scaleY = canvas.height / rect.height
+    touchX = (tt.x - rect.left) * scaleX
+    touchY = (tt.y - rect.top ) * scaleY
+
+    # vector from cab center → touch
+    cabX = player_x + PLAYER_WIDTH/2
+    cabY = player_y + PLAYER_HEIGHT/2
+    dx, dy = touchX - cabX, touchY - cabY
+    dist   = math.hypot(dx, dy)
+    if dist > 1:
+        vel = TOUCH_MAX_SPEED
+        global player_x, player_y
+        player_x += dx/dist * vel
+        player_y += dy/dist * vel
+        # clamp to the road bounds
+        player_x = max(DESERT_WIDTH,
+                    min(player_x, WIDTH - DESERT_WIDTH - PLAYER_WIDTH))
+        player_y = max(0,
+                    min(player_y, HEIGHT - PLAYER_HEIGHT - BOTTOM_MARGIN))
 
 def update(dt=None):
     global has_shield
+    handle_touch_movement()
+
     if game_over:
         draw_everything()
         return
