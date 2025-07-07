@@ -113,20 +113,29 @@ def reset_player_pos():
     player_y = HEIGHT - PLAYER_HEIGHT - BOTTOM_MARGIN
 
 def update_dimensions(evt=None):
-    global HEIGHT, WIDTH
-    # Stretch the HTML element to fill the viewport
-    canvas.style.width  = f"{window.innerWidth}px"
-    canvas.style.height = f"{window.innerHeight}px"
-    # Match the drawing buffer to that new size
-    canvas.width  = window.innerWidth
-    canvas.height = window.innerHeight
+    global WIDTH, HEIGHT
 
-    HEIGHT = canvas.height
-    WIDTH  = canvas.width
+    # Always let CSS decide actual on-screen size
+    # We read it back from the element’s computed style:
+    css_w = canvas.getBoundingClientRect().width
+    css_h = canvas.getBoundingClientRect().height
+
+    # If we’re on “mobile” (narrow), enforce our ratio
+    if window.innerWidth <= 600:
+        # e.g. 16:9 ratio
+        css_h = css_w * 9 / 16
+
+    # Now sync the drawing buffer
+    canvas.width  = css_w
+    canvas.height = css_h
+
+    # Mirror into your game logic
+    WIDTH, HEIGHT = css_w, css_h
 
     reset_player_pos()
     recalc_lane_geometry()
     draw_everything()
+
 def boxes_intersect(x1, y1, w1, h1, x2, y2, w2, h2, margin=0):
     return (
         x1 + margin < x2 + w2 - margin

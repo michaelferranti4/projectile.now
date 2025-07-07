@@ -19,3 +19,10 @@ html, body {
   border: 2px solid yellow;
   display: block;
 }
+
+/* Only on “mobile” widths (you can tweak the breakpoint) */
+@media (max-width: 600px) {
+  #gameCanvas {
+    aspect-ratio: 16 / 9;
+  }
+}
