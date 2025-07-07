@@ -127,6 +127,7 @@ def update_dimensions(evt=None):
     reset_player_pos()
     recalc_lane_geometry()
     draw_everything()
+    #test
 def boxes_intersect(x1, y1, w1, h1, x2, y2, w2, h2, margin=0):
     return (
         x1 + margin < x2 + w2 - margin
