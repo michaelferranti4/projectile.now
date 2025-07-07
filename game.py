@@ -305,7 +305,7 @@ def draw_everything():
 
         # restart hint
         ctx.font = "20px sans-serif"
-        ctx.fillText("Click to Restart", WIDTH/2 - 90, HEIGHT/2 + 40)
+        ctx.fillText("Click to Restart", WIDTH/2 - 90, HEIGHT/2 + 75)
     # Day/night overlay
     elapsed = window.Date.now() - start_time
     # if (elapsed % DAY_NIGHT_CYCLE) >= DAY_NIGHT_CYCLE / 2:
