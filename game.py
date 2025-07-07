@@ -1,5 +1,4 @@
 from browser import document, timer, window
-import math
 
 # === Constants ===
 WIDTH           = 800
@@ -317,41 +316,9 @@ def draw_everything():
     #     ctx.fillRect(0, 0, WIDTH, HEIGHT)
 
 # ---------------- main loop -------------------------------------------------
-def handle_touch_movement():
-    tt = window.touch_target   # assumes we expose this on window
-    if tt.x is None:
-        return
-
-    # get the CSS→canvas scale
-    rect = document["gameCanvas"].getBoundingClientRect()
-    scaleX = canvas.width  / rect.width
-    scaleY = canvas.height / rect.height
-
-    # map touch into canvas coords
-    touchX = (tt.x - rect.left) * scaleX
-    touchY = (tt.y - rect.top ) * scaleY
-
-    # compute vector from cab center
-    cabCX = player_x + PLAYER_WIDTH  / 2
-    cabCY = player_y + PLAYER_HEIGHT / 2
-    dx = touchX - cabCX
-    dy = touchY - cabCY
-    dist = math.hypot(dx, dy)
-    if dist > 1:
-        speed = TOUCH_MAX_SPEED
-        global player_x, player_y
-        player_x += dx/dist * speed
-        player_y += dy/dist * speed
-        # clamp to road
-        player_x = max(DESERT_WIDTH,
-                    min(player_x, WIDTH - DESERT_WIDTH - PLAYER_WIDTH))
-        player_y = max(0,
-                    min(player_y, HEIGHT - PLAYER_HEIGHT - BOTTOM_MARGIN))
 
 def update(dt=None):
     global has_shield
-    handle_touch_movement()
-
     if game_over:
         draw_everything()
         return
