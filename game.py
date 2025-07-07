@@ -291,7 +291,7 @@ def draw_everything():
     if game_over:
         # make the backdrop a bit taller
         ctx.fillStyle = "rgba(0,0,0,0.6)"
-        ctx.fillRect(0, HEIGHT / 2 - 45, WIDTH, 120)
+        ctx.fillRect(0, HEIGHT / 2 - 50, WIDTH, 120)
 
         # big GAME OVER
         ctx.fillStyle = "red"
