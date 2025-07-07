@@ -1,6 +1,5 @@
 from browser import document, timer, window
-raf_id = None    # holds the current requestAnimationFrame handle
-last_ts = 0
+
 # === Constants ===
 WIDTH           = 800
 LANE_COUNT      = 4
@@ -73,7 +72,6 @@ shield_expire_time = 0
 
 game_over = False
 start_time = 0  # set in restart()
-  # reset every restart
 
 # === High-score persistence ===
 try:
@@ -353,32 +351,11 @@ def update(dt=None):
 
 # ---------------- restart / setup ------------------------------------------
 
-def game_loop(ts):
-    global last_ts, raf_id
-    if not last_ts:
-        last_ts = ts
-    dt = ts - last_ts
-    last_ts = ts
-
-    update(dt)
-    draw_everything()
-
-    raf_id = window.requestAnimationFrame(game_loop)
 def restart():
     global obstacles, decorations, power_ups, score, game_over
     global base_speed, spawn_interval, has_shield, shield_expire_time, start_time
     global spawn_timer_id, dec_timer_id, power_timer_id, diff_timer_id, score_timer_id, game_loop_id
-    # ── cancel the previous RAF loop ──
-    if raf_id:
-        window.cancelAnimationFrame(raf_id)
-        raf_id = None
 
-    # ── reset the timestamp so dt starts clean ──
-    last_ts = 0
-
-    # ── now start fresh ──
-    last_ts = window.performance.now()
-    raf_id  = window.requestAnimationFrame(game_loop)
     # Clear timers
     for tid in [spawn_timer_id, dec_timer_id, power_timer_id, diff_timer_id, score_timer_id, game_loop_id]:
         if tid is not None:
@@ -396,9 +373,7 @@ def restart():
     start_time = window.Date.now()
 
     # Timers
-    global last_ts
-    last_ts = window.performance.now()
-    window.requestAnimationFrame(game_loop)
+    game_loop_id   = timer.set_interval(update, 16)
     spawn_timer_id = timer.set_interval(spawn_obstacle, spawn_interval)
     dec_timer_id   = timer.set_interval(spawn_decoration, DECOR_SPAWN_INTERVAL)
     power_timer_id = timer.set_interval(spawn_power_up, POWERUP_SPAWN_INTERVAL)
