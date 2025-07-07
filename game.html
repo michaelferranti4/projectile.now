@@ -133,7 +133,11 @@
         }
 
         // Hook it into your game‐loop just before move‐entities:
-
+        const originalUpdate = window.update;
+        window.update = function(dt) {
+          handleTouchMovement();
+          originalUpdate(dt);
+        };
 
         // Track finger position
         canvas.addEventListener("touchstart", e => {

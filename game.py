@@ -348,7 +348,7 @@ def handle_touch_movement():
 
 def update(dt=None):
     global has_shield
-    handle_touch_movement()
+   # handle_touch_movement()
 
     if game_over:
         draw_everything()
