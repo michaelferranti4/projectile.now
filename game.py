@@ -291,7 +291,7 @@ def draw_everything():
     if game_over:
         # make the backdrop a bit taller
         ctx.fillStyle = "rgba(0,0,0,0.6)"
-        ctx.fillRect(0, HEIGHT / 2 - 50, WIDTH, 120)
+        ctx.fillRect(0, HEIGHT / 2 - 45, WIDTH, 120)
 
         # big GAME OVER
         ctx.fillStyle = "red"
@@ -305,7 +305,7 @@ def draw_everything():
 
         # restart hint
         ctx.font = "20px sans-serif"
-        ctx.fillText("Press R to Restart", WIDTH / 2 - 90, HEIGHT / 2 + 75)
+        ctx.fillText("Click to Restart", WIDTH/2 - 80, HEIGHT/2 + 40)
     # Day/night overlay
     elapsed = window.Date.now() - start_time
     # if (elapsed % DAY_NIGHT_CYCLE) >= DAY_NIGHT_CYCLE / 2:
@@ -389,12 +389,19 @@ def on_keydown(evt):
     keys_down.add(key)
     if (key == "r" or key == "R") and game_over:
         restart()
+def on_click(evt):
+    # if we’re in game-over state, any click/tap restarts
+    if game_over:
+        restart()
+
 
 def on_keyup(evt):
     keys_down.discard(evt.key)
 
 document.bind("keydown", on_keydown)
 document.bind("keyup", on_keyup)
+document.bind("click", on_click)
+
 
 # ---------------- initialisation -------------------------------------------
 
