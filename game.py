@@ -1,5 +1,6 @@
 from browser import document, timer, window
-
+raf_id = None    # holds the current requestAnimationFrame handle
+last_ts = 0
 # === Constants ===
 WIDTH           = 800
 LANE_COUNT      = 4
@@ -72,6 +73,7 @@ shield_expire_time = 0
 
 game_over = False
 start_time = 0  # set in restart()
+  # reset every restart
 
 # === High-score persistence ===
 try:
@@ -350,28 +352,33 @@ def update(dt=None):
     draw_everything()
 
 # ---------------- restart / setup ------------------------------------------
-last_ts = 0
 
 def game_loop(ts):
-    global last_ts
-    # on the very first frame, just initialize last_ts
+    global last_ts, raf_id
     if not last_ts:
         last_ts = ts
-    # compute how much real time has passed
     dt = ts - last_ts
     last_ts = ts
 
-    # run your existing update & draw at the right speed
     update(dt)
     draw_everything()
 
-    # queue up the next frame
-    window.requestAnimationFrame(game_loop)
+    raf_id = window.requestAnimationFrame(game_loop)
 def restart():
     global obstacles, decorations, power_ups, score, game_over
     global base_speed, spawn_interval, has_shield, shield_expire_time, start_time
     global spawn_timer_id, dec_timer_id, power_timer_id, diff_timer_id, score_timer_id, game_loop_id
+    # ── cancel the previous RAF loop ──
+    if raf_id:
+        window.cancelAnimationFrame(raf_id)
+        raf_id = None
 
+    # ── reset the timestamp so dt starts clean ──
+    last_ts = 0
+
+    # ── now start fresh ──
+    last_ts = window.performance.now()
+    raf_id  = window.requestAnimationFrame(game_loop)
     # Clear timers
     for tid in [spawn_timer_id, dec_timer_id, power_timer_id, diff_timer_id, score_timer_id, game_loop_id]:
         if tid is not None:
