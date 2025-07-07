@@ -113,17 +113,20 @@ def reset_player_pos():
     player_y = HEIGHT - PLAYER_HEIGHT - BOTTOM_MARGIN
 
 def update_dimensions(evt=None):
-    global HEIGHT, WIDTH
-    # Stretch the HTML element to fill the viewport
-    canvas.style.width  = f"{window.innerWidth}px"
-    canvas.style.height = f"{window.innerHeight}px"
-    # Match the drawing buffer to that new size
-    canvas.width  = window.innerWidth
-    canvas.height = window.innerHeight
+    # 1) figure out how big the <canvas> actually is on-screen:
+    rect = canvas.getBoundingClientRect()
+    new_w, new_h = int(rect.width), int(rect.height)
 
-    HEIGHT = canvas.height
-    WIDTH  = canvas.width
+    # 2) make the drawing buffer match that exactly:
+    canvas.width  = new_w
+    canvas.height = new_h
 
+    # 3) update our game-logic globals:
+    global WIDTH, HEIGHT
+    WIDTH  = new_w
+    HEIGHT = new_h
+
+    # 4) re-position player & lanes & redraw:
     reset_player_pos()
     recalc_lane_geometry()
     draw_everything()
