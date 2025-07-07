@@ -1,21 +1,21 @@
 html, body {
   margin: 0;
   padding: 0;
-  height: 100vh;
   width: 100vw;
-  background-color: #e0c96b;   /* your desert background */
+  height: 100vh;
+  overflow: hidden;              /* no panning / scrollbars */
+  background-color: #e0c96b;     /* desert backdrop */
   display: flex;
   justify-content: center;
   align-items: center;
-  overflow: hidden;
 }
 
 #gameCanvas {
-  /* never exceed native size, but shrink if needed to fit */
-  max-width: 800px;
-  max-height: 90vh;    /* leave a little top/bottom padding on very short screens */
-  width: auto;
-  height: auto;
-  border: 2px solid yellow;
+  /* fill the viewport height, keep 800×900 ratio, and cap width */
+  height: 100vh;
+  aspect-ratio: 800 / 900;
+  max-width: 100vw;
+  width: auto;                   /* computed from height & aspect-ratio */
   display: block;
+  border: 2px solid yellow;
 }
