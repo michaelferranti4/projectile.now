@@ -94,41 +94,28 @@
       });
        if ('ontouchstart' in window) {
         const touch_target = { x: null, y: null };
-        window.touch_target = touch_target;
         const TOUCH_MAX_SPEED = PLAYER_MOVE_STEP * 2;
 
         // update() loop: nudge the cab toward touch_target
         function handleTouchMovement() {
-          if (touch_target.x === null) return;
+          if (touch_target.x !== null) {
 
-          // get the on-screen size & position of the canvas
-          const rect = canvas.getBoundingClientRect();
-          // compute how much CSS pixels map to one canvas pixel
-          const scaleX = canvas.width  / rect.width;
-          const scaleY = canvas.height / rect.height;
-
-          // translate the touch into canvas space
-          const touchX = (touch_target.x - rect.left) * scaleX;
-          const touchY = (touch_target.y - rect.top) * scaleY;
-
-          // compute the center of the cab in canvas space
-          const cabCenterX = player_x + PLAYER_WIDTH  / 2;
-          const cabCenterY = player_y + PLAYER_HEIGHT / 2;
-
-          // vector toward the touch
-          let dx = touchX - cabCenterX;
-          let dy = touchY - cabCenterY;
-          const dist = Math.hypot(dx, dy);
-          if (dist > 1) {
-            // move at a fixed speed toward the target
-            const speed = TOUCH_MAX_SPEED;
-            player_x += (dx / dist) * speed;
-            player_y += (dy / dist) * speed;
-            // clamp to road bounds
-            player_x = Math.max(DESERT_WIDTH,
-                         Math.min(player_x, WIDTH - DESERT_WIDTH - PLAYER_WIDTH));
-            player_y = Math.max(0,
-                         Math.min(player_y, HEIGHT - PLAYER_HEIGHT - BOTTOM_MARGIN));
+            const rect = canvas.getBoundingClientRect();
+            const cabCenterX = player_x + PLAYER_WIDTH/2 + rect.left;
+            const cabCenterY = player_y + PLAYER_HEIGHT/2 + rect.top;
+            let dx = touch_target.x - cabCenterX;
+            let dy = touch_target.y - cabCenterY;
+            const dist = Math.hypot(dx, dy);
+            if (dist > 1) {
+              const speed = TOUCH_MAX_SPEED;
+              player_x += (dx / dist) * speed;
+              player_y += (dy / dist) * speed;
+              // clamp to road bounds
+              player_x = Math.max(DESERT_WIDTH,
+                            Math.min(player_x, WIDTH - DESERT_WIDTH - PLAYER_WIDTH));
+              player_y = Math.max(0,
+                            Math.min(player_y, HEIGHT - PLAYER_HEIGHT - BOTTOM_MARGIN));
+            }
           }
         }
 
