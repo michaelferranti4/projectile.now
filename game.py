@@ -1,3 +1,5 @@
+import math
+
 from browser import document, timer, window
 
 # === Constants ===
