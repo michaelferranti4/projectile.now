@@ -115,13 +115,13 @@ def reset_player_pos():
 def update_dimensions(evt=None):
     global HEIGHT
 
-    # 1 Stretch the element _first_
-    canvas.style.height = f"{window.innerHeight}px"
+    # 1. Take the viewport’s current pixel height
+    HEIGHT = window.innerHeight
 
-    # 2 NOW measure the real, final height
-    HEIGHT = canvas.getBoundingClientRect().height
+    # 2. Make the DOM element exactly that tall …
+    canvas.style.height = f"{HEIGHT}px"
 
-    # 3 Match the pixel buffer to the element
+    # 3. … and give the backing store the same size
     canvas.height = HEIGHT
 
     reset_player_pos()
