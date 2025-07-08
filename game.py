@@ -140,23 +140,30 @@ def boxes_intersect(x1, y1, w1, h1, x2, y2, w2, h2, margin=0):
 # near the top of your file, keep these
 last_spawn_lane        = None
 second_last_spawn_lane = None
+double_cooldown = 0
 
 def spawn_obstacle():
-    global last_spawn_lane, second_last_spawn_lane
+    global last_spawn_lane, second_last_spawn_lane, double_cooldown
 
-    num_to_spawn = 2 if window.Math.random() < 0.2 else 1
+    # decide if we’re allowed to do a double
+    can_double = (double_cooldown <= 0)
+    if can_double and window.Math.random() < 0.2:
+        num_to_spawn = 2
+    else:
+        num_to_spawn = 1
 
     def lanes_clear_of_adjacent():
         safe = []
         for lane in range(LANE_COUNT):
             ok = True
-            for adj in (lane-1, lane+1):
+            for adj in (lane - 1, lane + 1):
                 if 0 <= adj < LANE_COUNT:
                     for o in obstacles:
                         if o["lane"] == adj and o["y"] < OBSTACLE_HEIGHT:
                             ok = False
                             break
-                    if not ok: break
+                    if not ok:
+                        break
             if ok:
                 safe.append(lane)
         return safe
@@ -165,20 +172,15 @@ def spawn_obstacle():
     if num_to_spawn == 1:
         safe = lanes_clear_of_adjacent()
         if safe:
-            # Build weights: penalize the “third in a row” lane if it exists
-            weights = []
+            # penalize 3-in-a-row lane
             penalized = (
                 last_spawn_lane is not None
                 and last_spawn_lane == second_last_spawn_lane
             )
+            weights = []
             for lane in safe:
-                if penalized and lane == last_spawn_lane:
-                    # Make it 3× less likely
-                    weights.append(2)
-                else:
-                    weights.append(3)
+                weights.append(2 if (penalized and lane == last_spawn_lane) else 3)
 
-            # Weighted random select
             total = sum(weights)
             pick = window.Math.random() * total
             running = 0
@@ -196,17 +198,16 @@ def spawn_obstacle():
         last_spawn_lane        = lanes_to_spawn[0]
 
     else:
-        # double-spawn: same as before
-        pairs = [(i, i+1) for i in range(LANE_COUNT-1)]
-        lane1, lane2 = pairs[
-            int(window.Math.floor(window.Math.random() * len(pairs)))
-        ]
+        # double‐spawn: pick a random adjacent pair
+        pairs = [(i, i+1) for i in range(LANE_COUNT - 1)]
+        lane1, lane2 = pairs[int(window.Math.floor(window.Math.random() * len(pairs)))]
         lanes_to_spawn = [lane1, lane2]
-        # reset history
+
+        # reset single‐spawn history
         last_spawn_lane = None
         second_last_spawn_lane = None
 
-    # actually spawn them
+    # actually add the obstacles
     for lane in lanes_to_spawn:
         obstacles.append({
             "lane":   lane,
@@ -221,6 +222,12 @@ def spawn_obstacle():
                 ))
             ]
         })
+
+    # update our double‐spawn cooldown
+    if num_to_spawn == 2:
+        double_cooldown = 3
+    elif double_cooldown > 0:
+        double_cooldown -= 1
 
 def _choose_best_lane_by_same_lane_clearance():
     """Your existing fallback: pick the lane where the nearest car in that same lane
