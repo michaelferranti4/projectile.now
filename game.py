@@ -147,6 +147,17 @@ def spawn_obstacle():
                 break
             lane = int(window.Math.floor(window.Math.random() * LANE_COUNT))
             attempts += 1
+        if attempts >= 5:
+            # find the lane where the closest car is lowest on the screen
+            best_lane, max_dist = None, -1
+            for l in range(LANE_COUNT):
+                nearest = min(
+                    (o["y"] for o in obstacles if o["lane"] == l),
+                    default=HEIGHT + 100  # no cars = infinite clearance
+                )
+                if nearest > max_dist:
+                    best_lane, max_dist = l, nearest
+            lane = best_lane
         obstacles.append({
             "lane": lane,
             "x": LANE_CENTERS[lane] - OBSTACLE_WIDTH / 2,
