@@ -137,51 +137,90 @@ def boxes_intersect(x1, y1, w1, h1, x2, y2, w2, h2, margin=0):
 
 # ---------------- spawn helpers (unchanged except for HEIGHT removal) ------
 
+# near the top of your file, keep these
+last_spawn_lane        = None
+second_last_spawn_lane = None
+
 def spawn_obstacle():
+    global last_spawn_lane, second_last_spawn_lane
+
     num_to_spawn = 2 if window.Math.random() < 0.2 else 1
 
     def lanes_clear_of_adjacent():
-        """Return all lanes where BOTH adjacent lanes (if they exist)
-           have no obstacle within one car-height (OBSTACLE_HEIGHT) of the spawn line."""
         safe = []
         for lane in range(LANE_COUNT):
             ok = True
             for adj in (lane-1, lane+1):
                 if 0 <= adj < LANE_COUNT:
-                    # if any obstacle in adj lane is too close to the top, mark unsafe
                     for o in obstacles:
                         if o["lane"] == adj and o["y"] < OBSTACLE_HEIGHT:
                             ok = False
                             break
-                    if not ok:
-                        break
+                    if not ok: break
             if ok:
                 safe.append(lane)
         return safe
 
+    lanes_to_spawn = []
     if num_to_spawn == 1:
-        safe_lanes = lanes_clear_of_adjacent()
-        if safe_lanes:
-            # pick one of the truly safe lanes
-            lane = int(window.Math.floor(window.Math.random() * len(safe_lanes)))
-            lane = safe_lanes[lane]
-        else:
-            # fallback to old “closest in same lane” logic
-            lane = _choose_best_lane_by_same_lane_clearance()
-    else:
-        # two cars: allow double side-by-side
-        lane = int(window.Math.floor(window.Math.random() * LANE_COUNT))
+        safe = lanes_clear_of_adjacent()
+        if safe:
+            # Build weights: penalize the “third in a row” lane if it exists
+            weights = []
+            penalized = (
+                last_spawn_lane is not None
+                and last_spawn_lane == second_last_spawn_lane
+            )
+            for lane in safe:
+                if penalized and lane == last_spawn_lane:
+                    # Make it 3× less likely
+                    weights.append(2)
+                else:
+                    weights.append(3)
 
-    # now actually spawn
-    obstacles.append({
-        "lane": lane,
-        "x": LANE_CENTERS[lane] - OBSTACLE_WIDTH / 2,
-        "y": -OBSTACLE_HEIGHT,
-        "width": OBSTACLE_WIDTH,
-        "height": OBSTACLE_HEIGHT,
-        "speed": base_speed + window.Math.random(),
-        "color": OBSTACLE_COLORS[int(window.Math.floor(window.Math.random() * len(OBSTACLE_COLORS)))]
-    })
+            # Weighted random select
+            total = sum(weights)
+            pick = window.Math.random() * total
+            running = 0
+            for lane, w in zip(safe, weights):
+                running += w
+                if pick < running:
+                    chosen = lane
+                    break
+            lanes_to_spawn = [chosen]
+        else:
+            lanes_to_spawn = [ _choose_best_lane_by_same_lane_clearance() ]
+
+        # update history
+        second_last_spawn_lane = last_spawn_lane
+        last_spawn_lane        = lanes_to_spawn[0]
+
+    else:
+        # double-spawn: same as before
+        pairs = [(i, i+1) for i in range(LANE_COUNT-1)]
+        lane1, lane2 = pairs[
+            int(window.Math.floor(window.Math.random() * len(pairs)))
+        ]
+        lanes_to_spawn = [lane1, lane2]
+        # reset history
+        last_spawn_lane = None
+        second_last_spawn_lane = None
+
+    # actually spawn them
+    for lane in lanes_to_spawn:
+        obstacles.append({
+            "lane":   lane,
+            "x":      LANE_CENTERS[lane] - OBSTACLE_WIDTH / 2,
+            "y":     -OBSTACLE_HEIGHT,
+            "width":  OBSTACLE_WIDTH,
+            "height": OBSTACLE_HEIGHT,
+            "speed":  base_speed + window.Math.random(),
+            "color":  OBSTACLE_COLORS[
+                int(window.Math.floor(
+                    window.Math.random() * len(OBSTACLE_COLORS)
+                ))
+            ]
+        })
 
 def _choose_best_lane_by_same_lane_clearance():
     """Your existing fallback: pick the lane where the nearest car in that same lane
