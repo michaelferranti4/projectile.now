@@ -138,12 +138,12 @@ def boxes_intersect(x1, y1, w1, h1, x2, y2, w2, h2, margin=0):
 # ---------------- spawn helpers (unchanged except for HEIGHT removal) ------
 
 def spawn_obstacle():
-    num_to_spawn = 2 if window.Math.random() < 0.25 else 1
+    num_to_spawn = 2 if window.Math.random() < 0.2 else 1
     for _ in range(num_to_spawn):
         attempts = 0
         lane = int(window.Math.floor(window.Math.random() * LANE_COUNT))
         while attempts < 5:
-            if not any(o["lane"] == lane and o["y"] < OBSTACLE_HEIGHT * 1.5 for o in obstacles):
+            if not any(o["lane"] == lane and o["y"] < OBSTACLE_HEIGHT * 1.7 for o in obstacles):
                 break
             lane = int(window.Math.floor(window.Math.random() * LANE_COUNT))
             attempts += 1
