@@ -139,34 +139,63 @@ def boxes_intersect(x1, y1, w1, h1, x2, y2, w2, h2, margin=0):
 
 def spawn_obstacle():
     num_to_spawn = 2 if window.Math.random() < 0.2 else 1
-    for _ in range(num_to_spawn):
-        attempts = 0
+
+    def lanes_clear_of_adjacent():
+        """Return all lanes where BOTH adjacent lanes (if they exist)
+           have no obstacle within one car-height (OBSTACLE_HEIGHT) of the spawn line."""
+        safe = []
+        for lane in range(LANE_COUNT):
+            ok = True
+            for adj in (lane-1, lane+1):
+                if 0 <= adj < LANE_COUNT:
+                    # if any obstacle in adj lane is too close to the top, mark unsafe
+                    for o in obstacles:
+                        if o["lane"] == adj and o["y"] < OBSTACLE_HEIGHT:
+                            ok = False
+                            break
+                    if not ok:
+                        break
+            if ok:
+                safe.append(lane)
+        return safe
+
+    if num_to_spawn == 1:
+        safe_lanes = lanes_clear_of_adjacent()
+        if safe_lanes:
+            # pick one of the truly safe lanes
+            lane = int(window.Math.floor(window.Math.random() * len(safe_lanes)))
+            lane = safe_lanes[lane]
+        else:
+            # fallback to old “closest in same lane” logic
+            lane = _choose_best_lane_by_same_lane_clearance()
+    else:
+        # two cars: allow double side-by-side
         lane = int(window.Math.floor(window.Math.random() * LANE_COUNT))
-        while attempts < 5:
-            if not any(o["lane"] == lane and o["y"] < OBSTACLE_HEIGHT * 1.7 for o in obstacles):
-                break
-            lane = int(window.Math.floor(window.Math.random() * LANE_COUNT))
-            attempts += 1
-        if attempts >= 5:
-            # find the lane where the closest car is lowest on the screen
-            best_lane, max_dist = None, -1
-            for l in range(LANE_COUNT):
-                nearest = min(
-                    (o["y"] for o in obstacles if o["lane"] == l),
-                    default=HEIGHT + 100  # no cars = infinite clearance
-                )
-                if nearest > max_dist:
-                    best_lane, max_dist = l, nearest
-            lane = best_lane
-        obstacles.append({
-            "lane": lane,
-            "x": LANE_CENTERS[lane] - OBSTACLE_WIDTH / 2,
-            "y": -OBSTACLE_HEIGHT,
-            "width": OBSTACLE_WIDTH,
-            "height": OBSTACLE_HEIGHT,
-            "speed": base_speed + window.Math.random(),
-            "color": OBSTACLE_COLORS[int(window.Math.floor(window.Math.random() * len(OBSTACLE_COLORS)))]
-        })
+
+    # now actually spawn
+    obstacles.append({
+        "lane": lane,
+        "x": LANE_CENTERS[lane] - OBSTACLE_WIDTH / 2,
+        "y": -OBSTACLE_HEIGHT,
+        "width": OBSTACLE_WIDTH,
+        "height": OBSTACLE_HEIGHT,
+        "speed": base_speed + window.Math.random(),
+        "color": OBSTACLE_COLORS[int(window.Math.floor(window.Math.random() * len(OBSTACLE_COLORS)))]
+    })
+
+def _choose_best_lane_by_same_lane_clearance():
+    """Your existing fallback: pick the lane where the nearest car in that same lane
+       is furthest down the screen, so you don’t bunch on top of yourself."""
+    best_lane, max_dist = None, -1
+    for l in range(LANE_COUNT):
+        nearest = min(
+            (o["y"] for o in obstacles if o["lane"] == l),
+            default=HEIGHT + 100
+        )
+        if nearest > max_dist:
+            best_lane, max_dist = l, nearest
+    return best_lane
+
 
 def spawn_decoration():
     dtype = DEC_TYPES[int(window.Math.floor(window.Math.random() * len(DEC_TYPES)))]
