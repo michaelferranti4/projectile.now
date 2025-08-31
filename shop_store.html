@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Store — Projectile</title>
+  <meta name="description" content="Shop official Projectile merch." />
+  <link rel="preconnect" href="https://cdn.shopify.com" crossorigin>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+  <style>
+    :root {
+      --bg: #0b0b0b;
+      --panel: #121212;
+      --text: #f6f6f6;
+      --muted: #b9b9b9;
+      --accent: #ff3b30; /* red */
+      --accent-2: #9c1510;
+      --radius: 16px;
+      --shadow: 0 10px 25px rgba(0,0,0,.35);
+    }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Inter, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      background: radial-gradient(1200px 800px at 10% -10%, #1a1a1a 0%, #0b0b0b 50%, #000 100%);
+      color: var(--text);
+    }
+    a { color: var(--text); text-decoration: none; }
+
+    /* Page shell */
+    .nav {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 16px clamp(16px, 4vw, 40px);
+      position: sticky; top: 0; z-index: 50;
+      background: linear-gradient(180deg, rgba(0,0,0,.9), rgba(0,0,0,.6));
+      backdrop-filter: blur(5px);
+      border-bottom: 1px solid rgba(255,255,255,.06);
+    }
+    .brand { display: flex; align-items: center; gap: 12px; }
+    .brand img { height: 32px; width: auto; display: block; }
+    .brand h1 { font-size: 16px; margin: 0; letter-spacing: .08em; text-transform: uppercase; font-weight: 700; }
+
+    .btn {
+      border: 0; border-radius: 14px; padding: 12px 18px; cursor: pointer; font-weight: 700;
+      color: #fff; background: linear-gradient(180deg, var(--accent), var(--accent-2));
+      box-shadow: 0 6px 0 #5e0b08, 0 18px 30px rgba(255, 59, 48, .25);
+      transform: translateY(0); transition: transform .08s ease-out, box-shadow .2s ease;
+    }
+    .btn:active { transform: translateY(3px); box-shadow: 0 3px 0 #5e0b08, 0 8px 16px rgba(255, 59, 48, .2); }
+    .btn.secondary { background: #1f1f1f; box-shadow: var(--shadow); border: 1px solid #2b2b2b; }
+
+    .container { max-width: 1200px; margin: 0 auto; padding: 24px clamp(16px, 4vw, 40px) 64px; }
+
+    .hero { display: grid; grid-template-columns: 1fr; gap: 14px; align-items: center; margin: 10px 0 20px; }
+    .hero h2 { font-size: clamp(28px, 3.6vw, 44px); margin: 6px 0; }
+    .hero p { color: var(--muted); margin: 0; }
+
+    /* Controls */
+    .controls { display: grid; grid-template-columns: 1fr auto auto; gap: 12px; align-items: center; margin: 16px 0 24px; }
+    @media (max-width: 720px) { .controls { grid-template-columns: 1fr 1fr; } .controls .sort { grid-column: 2; }
+      .controls .filters { grid-column: 1 / -1; }
+    }
+    .input {
+      background: #121212; border: 1px solid #2b2b2b; border-radius: 12px; padding: 12px 14px; color: var(--text); width: 100%;
+      box-shadow: var(--shadow);
+    }
+    .select { appearance: none; background: #121212; color: var(--text); border: 1px solid #2b2b2b; border-radius: 12px; padding: 12px 40px 12px 14px; position: relative; }
+
+    /* Grid */
+    .grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 18px; }
+    .card { grid-column: span 3; background: var(--panel); border: 1px solid #222; border-radius: var(--radius); overflow: hidden; position: relative; box-shadow: var(--shadow); display: flex; flex-direction: column; }
+    @media (max-width: 1100px) { .card { grid-column: span 4; } }
+    @media (max-width: 800px) { .card { grid-column: span 6; } }
+    @media (max-width: 520px) { .card { grid-column: span 12; } }
+
+    .thumb { aspect-ratio: 1/1; width: 100%; background: #0d0d0d; display: grid; place-items: center; }
+    .thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+    .card-body { padding: 14px; display: grid; gap: 10px; }
+    .title { font-weight: 700; font-size: 15px; line-height: 1.3; }
+    .price { display: flex; align-items: center; gap: 8px; font-weight: 800; }
+    .price s { color: #888; font-weight: 600; }
+    .meta { color: var(--muted); font-size: 12px; }
+    .options { display: grid; gap: 8px; }
+    .actions { display: flex; gap: 10px; align-items: center; }
+
+    /* Cart drawer */
+    .cart-toggle { position: relative; }
+    .cart-count { position: absolute; top: -6px; right: -6px; background: var(--accent); color: #fff; border-radius: 999px; font-size: 12px; padding: 2px 6px; min-width: 20px; text-align: center; }
+
+    .drawer-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,.4); opacity: 0; pointer-events: none; transition: opacity .2s ease; }
+    .drawer { position: fixed; top: 0; right: -420px; width: min(420px, 96vw); height: 100dvh; background: #111; border-left: 1px solid #222; box-shadow: -20px 0 60px rgba(0,0,0,.5); transition: right .22s ease; display: flex; flex-direction: column; }
+    .drawer.open ~ .drawer-backdrop { opacity: 1; pointer-events: auto; }
+    .drawer.open { right: 0; }
+
+    .drawer header { display: flex; align-items: center; justify-content: space-between; padding: 16px; border-bottom: 1px solid #212121; }
+    .drawer .items { flex: 1; overflow: auto; display: grid; gap: 10px; padding: 10px 12px; }
+    .line { display: grid; grid-template-columns: 64px 1fr auto; gap: 10px; align-items: center; background: #0f0f0f; border: 1px solid #1f1f1f; border-radius: 12px; padding: 8px; }
+    .line img { width: 64px; height: 64px; object-fit: cover; border-radius: 8px; }
+    .line .qty { display: inline-flex; align-items: center; border: 1px solid #2a2a2a; border-radius: 10px; overflow: hidden; }
+    .line .qty button { width: 32px; height: 32px; background: #1c1c1c; color: #fff; border: 0; cursor: pointer; font-size: 16px; }
+    .line .qty input { width: 40px; height: 32px; background: #0f0f0f; color: #fff; border: 0; text-align: center; }
+
+    .drawer .summary { border-top: 1px solid #212121; padding: 14px; display: grid; gap: 10px; }
+    .summary .row { display: flex; justify-content: space-between; color: var(--muted); }
+    .summary .total { font-weight: 900; color: #fff; font-size: 18px; }
+
+    .empty { text-align: center; color: var(--muted); padding: 40px 10px; }
+
+    /* Helpers */
+    .hide { display: none !important; }
+    .badge { position: absolute; top: 10px; left: 10px; background: #0a0a0a; border: 1px solid #2a2a2a; color: #fff; font-size: 12px; padding: 4px 8px; border-radius: 999px; }
+    .sale { background: #300; border-color: #511; color: #faa; }
+  </style>
+</head>
+<body>
+  <nav class="nav" aria-label="Store navigation">
+    <div class="brand">
+      <!-- Swap to your logo asset if you like -->
+      <img src="assets/projectile-logo-2-white.png" alt="Projectile" />
+      <h1>Store</h1>
+    </div>
+    <div style="display:flex; gap:10px; align-items:center;">
+      <a class="btn secondary" href="/">← Back</a>
+      <button id="cartBtn" class="btn cart-toggle" aria-haspopup="dialog" aria-controls="cartDrawer" aria-expanded="false">Cart <span id="cartCount" class="cart-count hide">0</span></button>
+    </div>
+  </nav>
+
+  <main class="container">
+    <section class="hero">
+      <h2>Official Merch</h2>
+      <p>Secure checkout via Shopify. New items auto‑appear when you add them to the selected collection in Shopify.</p>
+    </section>
+
+    <!-- Controls -->
+    <section class="controls" aria-label="Catalog controls">
+      <input id="search" class="input" type="search" placeholder="Search products… (e.g., tee, hoodie, vinyl)" aria-label="Search products" />
+      <select id="sort" class="select sort" aria-label="Sort products">
+        <option value="featured">Featured</option>
+        <option value="alpha">Alphabetical</option>
+        <option value="price-asc">Price: Low → High</option>
+        <option value="price-desc">Price: High → Low</option>
+      </select>
+      <button id="refreshBtn" class="btn" title="Refetch products">↻ Refresh</button>
+    </section>
+
+    <!-- Grid -->
+    <section id="grid" class="grid" aria-live="polite"></section>
+
+    <p id="status" class="meta" role="status" aria-live="polite" style="margin-top:16px;"></p>
+  </main>
+
+  <!-- Cart Drawer -->
+  <aside id="cartDrawer" class="drawer" role="dialog" aria-label="Shopping cart" aria-modal="true" aria-hidden="true">
+    <header>
+      <strong>Your Cart</strong>
+      <button id="closeCart" class="btn secondary" aria-label="Close cart">✕</button>
+    </header>
+    <div id="cartItems" class="items"></div>
+    <div class="summary">
+      <div class="row"><span>Subtotal</span><span id="cartSubtotal">—</span></div>
+      <div class="row" style="font-size:12px; color:var(--muted);">Shipping & taxes at checkout.</div>
+      <a id="checkoutBtn" class="btn" href="#" target="_blank" rel="noopener">Checkout</a>
+    </div>
+  </aside>
+  <div class="drawer-backdrop" id="cartBackdrop"></div>
+
+  <noscript>
+    <div class="container"><p>Please enable JavaScript to shop.</p></div>
+  </noscript>
+
+  <!-- Shopify Buy SDK (official) -->
+  <script src="https://cdn.jsdelivr.net/npm/shopify-buy@2.20.1/index.umd.min.js" crossorigin="anonymous"></script>
+
+  <script>
+    /************************************************************
+     * 🔧 CONFIG — Fill these in once, then deploy.
+     ************************************************************/
+    const SHOPIFY_DOMAIN = "projectilestore.myshopify.com"; // e.g., projectile-band.myshopify.com
+    const STOREFRONT_ACCESS_TOKEN = "0a4f09e14fcc8539c52ec3dc9a78b94a"; // Admin → Apps and sales channels → Develop apps → Storefront API token
+    const COLLECTION_HANDLE = "trash-day-merch-1"; // The collection handle to show (Settings → Collections). Create a Merch collection and use its handle.
+
+    // Optional: limit products pulled (max ~250). Keep undefined to use default.
+    const PRODUCTS_LIMIT = 100;
+
+    /************************************************************
+     * Minimal store powered by Shopify Buy SDK
+     * - Dynamic products from a collection (auto-updates as you edit Shopify)
+     * - Variant pickers, quantity, sale pricing
+     * - Cart drawer with persistent checkout (localStorage)
+     ************************************************************/
+
+    const client = ShopifyBuy.buildClient({ domain: SHOPIFY_DOMAIN, storefrontAccessToken: STOREFRONT_ACCESS_TOKEN });
+
+    const els = {
+      grid: document.getElementById('grid'),
+      search: document.getElementById('search'),
+      sort: document.getElementById('sort'),
+      refresh: document.getElementById('refreshBtn'),
+      status: document.getElementById('status'),
+      cartBtn: document.getElementById('cartBtn'),
+      cartCount: document.getElementById('cartCount'),
+      cartDrawer: document.getElementById('cartDrawer'),
+      cartBackdrop: document.getElementById('cartBackdrop'),
+      closeCart: document.getElementById('closeCart'),
+      cartItems: document.getElementById('cartItems'),
+      cartSubtotal: document.getElementById('cartSubtotal'),
+      checkoutBtn: document.getElementById('checkoutBtn'),
+    };
+
+    const storageKeys = { checkoutId: 'shopify_checkout_id_v1' };
+    let checkout = null;        // Shopify checkout object
+    let products = [];          // Raw products from Shopify
+    let productsView = [];      // Working set after search/sort
+
+    init();
+
+    async function init() {
+      try {
+        await initCheckout();
+        await fetchProducts();
+        bindUI();
+      } catch (err) {
+        console.error(err);
+        setStatus('Error loading store. Check your domain/token/collection handle.');
+      }
+    }
+
+    async function initCheckout() {
+      const existingId = localStorage.getItem(storageKeys.checkoutId);
+      if (existingId) {
+        try {
+          const existing = await client.checkout.fetch(existingId);
+          if (existing && !existing.completedAt) {
+            checkout = existing; updateCartUI(); return;
+          }
+        } catch (_) { /* ignore and create fresh */ }
+      }
+      checkout = await client.checkout.create();
+      localStorage.setItem(storageKeys.checkoutId, checkout.id);
+      updateCartUI();
+    }
+
+    async function fetchProducts() {
+      setStatus('Loading products…');
+      // 1) get collection by handle → 2) fetch with products
+      const collection = await client.collection.fetchByHandle(COLLECTION_HANDLE);
+      if (!collection) throw new Error('Collection not found: ' + COLLECTION_HANDLE);
+      const withProducts = await client.collection.fetchWithProducts(collection.id, { productsFirst: PRODUCTS_LIMIT || 50 });
+      // Some SDK builds return products on the returned object, some on collection itself
+      products = (withProducts && withProducts.products) ? withProducts.products : (collection.products || []);
+
+      // Normalize: precompute min/max price and sort key
+      products = products.map(p => ({
+        ...p,
+        _minPrice: minVariantPrice(p),
+        _maxPrice: maxVariantPrice(p),
+        _available: p.availableForSale !== false
+      }));
+
+      productsView = [...products];
+      renderProducts(productsView);
+      setStatus(products.length ? `${products.length} product${products.length>1?'s':''} loaded` : 'No products in this collection yet.');
+    }
+
+    function setStatus(msg) { els.status.textContent = msg || ''; }
+
+    function minVariantPrice(product) {
+      const prices = product.variants.map(v => parseFloat(v.price.amount || v.price));
+      return Math.min(...prices);
+    }
+    function maxVariantPrice(product) {
+      const prices = product.variants.map(v => parseFloat(v.price.amount || v.price));
+      return Math.max(...prices);
+    }
+
+    function formatMoney(n) {
+      const val = (typeof n === 'string') ? parseFloat(n) : n;
+      return new Intl.NumberFormat(undefined, { style: 'currency', currency: (checkout && checkout.currencyCode) || 'USD' }).format(val);
+    }
+
+    function bindUI() {
+      els.search.addEventListener('input', onSearch);
+      els.sort.addEventListener('change', onSort);
+      els.refresh.addEventListener('click', () => fetchProducts());
+      els.cartBtn.addEventListener('click', openCart);
+      els.closeCart.addEventListener('click', closeCart);
+      els.cartBackdrop.addEventListener('click', closeCart);
+    }
+
+    function onSearch() {
+      const q = els.search.value.trim().toLowerCase();
+      productsView = products.filter(p => {
+        const t = (p.title || '').toLowerCase();
+        const tags = (p.tags || []).join(' ').toLowerCase();
+        return t.includes(q) || tags.includes(q);
+      });
+      applySort();
+      renderProducts(productsView);
+    }
+
+    function onSort() { applySort(); renderProducts(productsView); }
+
+    function applySort() {
+      const mode = els.sort.value;
+      const arr = productsView;
+      if (mode === 'alpha') arr.sort((a,b)=>a.title.localeCompare(b.title));
+      else if (mode === 'price-asc') arr.sort((a,b)=>a._minPrice - b._minPrice);
+      else if (mode === 'price-desc') arr.sort((a,b)=>b._minPrice - a._minPrice);
+      else /* featured */ arr.sort((a,b)=>0); // keep API order
+    }
+
+    function renderProducts(list) {
+      els.grid.innerHTML = '';
+      if (!list.length) {
+        els.grid.innerHTML = `<div class="empty" style="grid-column:1/-1">No matching items.</div>`;
+        return;
+      }
+      const frag = document.createDocumentFragment();
+      list.forEach(p => frag.appendChild(renderCard(p)));
+      els.grid.appendChild(frag);
+    }
+
+    function renderCard(p) {
+      const img = (p.images && p.images[0]) ? (p.images[0].src || p.images[0].transformedSrc) : '';
+      const available = p._available;
+      const isSale = p.variants.some(v => !!(v.compareAtPrice && parseFloat(v.compareAtPrice.amount || v.compareAtPrice) > parseFloat(v.price.amount || v.price)));
+      const wrap = document.createElement('article');
+      wrap.className = 'card';
+      wrap.innerHTML = `
+        <div class="thumb">${img?`<img loading="lazy" src="${img}" alt="${escapeHtml(p.title)}"/>`:`<span class="meta">No image</span>`}</div>
+        ${isSale ? '<span class="badge sale">On Sale</span>' : ''}
+        <div class="card-body">
+          <div class="title">${escapeHtml(p.title)}</div>
+          <div class="price">${priceRangeHtml(p)}</div>
+          <div class="meta">${available ? 'In stock' : 'Sold out'}</div>
+          <div class="options" data-product-id="${p.id}"></div>
+          <div class="actions">
+            <input type="number" min="1" value="1" class="input" style="max-width:90px" aria-label="Quantity" />
+            <button class="btn" ${available? '' : 'disabled'}>${available? 'Add to cart' : 'Sold out'}</button>
+          </div>
+        </div>`;
+
+      // Options / variants
+      const optHost = wrap.querySelector('.options');
+      const addBtn = wrap.querySelector('.actions .btn');
+      const qtyInput = wrap.querySelector('.actions input');
+
+      // Build selectors only if multiple variants or multiple options
+      const variantSelectors = buildVariantSelectors(p, optHost);
+
+      // Resolve selected variant
+      let currentVariant = resolveVariantFromSelectors(p, variantSelectors);
+      variantSelectors.forEach(sel => sel.addEventListener('change', () => {
+        currentVariant = resolveVariantFromSelectors(p, variantSelectors);
+        updatePriceForVariant(p, currentVariant, wrap);
+        addBtn.disabled = !currentVariant.available;
+      }));
+
+      addBtn.addEventListener('click', async () => {
+        try {
+          const qty = Math.max(1, parseInt(qtyInput.value || '1', 10));
+          if (!currentVariant || !currentVariant.id) return;
+          await addToCart(currentVariant.id, qty);
+          openCart();
+        } catch (e) { console.error(e); }
+      });
+
+      return wrap;
+    }
+
+    function priceRangeHtml(p) {
+      const min = p._minPrice, max = p._maxPrice;
+      // Show min price, and if on sale show compareAt from first variant that has it
+      const firstSale = p.variants.find(v => v.compareAtPrice && parseFloat(v.compareAtPrice.amount || v.compareAtPrice) > parseFloat(v.price.amount || v.price));
+      const saleHtml = firstSale ? `<s>${formatMoney(firstSale.compareAtPrice.amount || firstSale.compareAtPrice)}</s>` : '';
+      return `${saleHtml} <span>${min === max ? formatMoney(min) : `${formatMoney(min)} – ${formatMoney(max)}`}</span>`;
+    }
+
+    function buildVariantSelectors(p, host) {
+      const variantSelectors = [];
+      const opts = p.options || [];
+      if (!p.variants || p.variants.length <= 1 || opts.length === 0) return variantSelectors; // single variant, no selectors
+
+      opts.forEach((opt, i) => {
+        const label = document.createElement('label');
+        label.className = 'meta';
+        label.textContent = opt.name;
+        const select = document.createElement('select');
+        select.className = 'select';
+        select.setAttribute('aria-label', opt.name);
+        opt.values.forEach(val => {
+          const option = document.createElement('option');
+          option.value = val.value || val; // SDK can return objects or strings depending on version
+          option.textContent = val.value || val;
+          select.appendChild(option);
+        });
+        host.appendChild(label); host.appendChild(select);
+        variantSelectors.push(select);
+      });
+      return variantSelectors;
+    }
+
+    function resolveVariantFromSelectors(p, selectors) {
+      if (!p.variants || !p.variants.length) return null;
+      if (!selectors || !selectors.length) return p.variants[0];
+      // Build selected options array in order
+      const selected = selectors.map((sel, idx) => ({ name: (p.options[idx] && p.options[idx].name) || `Option ${idx+1}`, value: sel.value }));
+      // Try direct match
+      const hit = p.variants.find(v =>
+        (v.selectedOptions || []).every(so => selected.some(s => s.name === so.name && s.value === so.value))
+      );
+      return hit || p.variants[0];
+    }
+
+    function updatePriceForVariant(p, variant, wrap) {
+      const priceEl = wrap.querySelector('.price');
+      const sale = variant.compareAtPrice && parseFloat(variant.compareAtPrice.amount || variant.compareAtPrice) > parseFloat(variant.price.amount || variant.price);
+      priceEl.innerHTML = `${sale?`<s>${formatMoney(variant.compareAtPrice.amount || variant.compareAtPrice)}</s>`:''} <span>${formatMoney(variant.price.amount || variant.price)}</span>`;
+      const badge = wrap.querySelector('.badge');
+      if (badge) badge.classList.toggle('sale', !!sale);
+    }
+
+    async function addToCart(variantId, quantity) {
+      const lineItemsToAdd = [{ variantId, quantity }];
+      const updated = await client.checkout.addLineItems(checkout.id, lineItemsToAdd);
+      checkout = updated;
+      updateCartUI();
+    }
+
+    async function updateLineItem(lineItemId, quantity) {
+      const updated = await client.checkout.updateLineItems(checkout.id, [{ id: lineItemId, quantity }]);
+      checkout = updated; updateCartUI();
+    }
+
+    async function removeLineItem(lineItemId) {
+      const updated = await client.checkout.removeLineItems(checkout.id, [lineItemId]);
+      checkout = updated; updateCartUI();
+    }
+
+    function updateCartUI() {
+      const items = (checkout && checkout.lineItems) ? checkout.lineItems : [];
+      els.cartItems.innerHTML = '';
+      if (!items.length) {
+        els.cartItems.innerHTML = '<div class="empty">Your cart is empty.</div>';
+      } else {
+        const frag = document.createDocumentFragment();
+        items.forEach(li => {
+          const img = (li.variant && li.variant.image) ? (li.variant.image.src || li.variant.image.url) : '';
+          const el = document.createElement('div'); el.className = 'line';
+          el.innerHTML = `
+            ${img?`<img alt="${escapeHtml(li.title)}" src="${img}"/>`:'<div style="width:64px;height:64px;background:#111;border-radius:8px"></div>'}
+            <div>
+              <div style="font-weight:700;">${escapeHtml(li.title)}</div>
+              <div class="meta">${escapeHtml(li.variant && li.variant.title || '')}</div>
+              <button class="meta" style="background:none;border:0;color:#f77;cursor:pointer;padding:0" aria-label="Remove">Remove</button>
+            </div>
+            <div style="text-align:right;">
+              <div class="qty" role="group" aria-label="Quantity selector">
+                <button aria-label="Decrease">−</button>
+                <input type="number" min="1" value="${li.quantity}" aria-label="Quantity" />
+                <button aria-label="Increase">+</button>
+              </div>
+              <div style="margin-top:8px;font-weight:800;">${formatMoney(lineItemTotal(li))}</div>
+            </div>`;
+
+          const [decBtn, qtyInput, incBtn] = el.querySelectorAll('.qty > *');
+          el.querySelector('button[aria-label="Remove"]').addEventListener('click', () => removeLineItem(li.id));
+          decBtn.addEventListener('click', () => { const q=Math.max(1, (+qtyInput.value||1)-1); qtyInput.value=q; updateLineItem(li.id, q); });
+          incBtn.addEventListener('click', () => { const q=(+qtyInput.value||1)+1; qtyInput.value=q; updateLineItem(li.id, q); });
+          qtyInput.addEventListener('change', () => { const q=Math.max(1, parseInt(qtyInput.value||'1',10)); qtyInput.value=q; updateLineItem(li.id, q); });
+
+          frag.appendChild(el);
+        });
+        els.cartItems.appendChild(frag);
+      }
+
+      const count = items.reduce((a,b)=>a + b.quantity, 0);
+      els.cartCount.textContent = count;
+      els.cartCount.classList.toggle('hide', count === 0);
+      els.cartSubtotal.textContent = checkout ? formatMoney(checkout.subtotalPriceV2 ? checkout.subtotalPriceV2.amount : checkout.subtotalPrice) : '—';
+      els.checkoutBtn.href = checkout ? checkout.webUrl : '#';
+    }
+
+    function lineItemTotal(li) {
+      const price = parseFloat(li.variant && (li.variant.priceV2 ? li.variant.priceV2.amount : li.variant.price));
+      return price * li.quantity;
+    }
+
+    function openCart() {
+      els.cartDrawer.classList.add('open');
+      els.cartDrawer.setAttribute('aria-hidden', 'false');
+      els.cartBtn.setAttribute('aria-expanded', 'true');
+    }
+    function closeCart() {
+      els.cartDrawer.classList.remove('open');
+      els.cartDrawer.setAttribute('aria-hidden', 'true');
+      els.cartBtn.setAttribute('aria-expanded', 'false');
+    }
+
+    function escapeHtml(str){ return (str||'').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#039;'}[m])); }
+  </script>
+</body>
+</html>
