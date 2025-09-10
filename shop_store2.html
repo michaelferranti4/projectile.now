@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Trash Day Merch — Headless Shopify</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    /* Simple modal + drawer transitions */
+    .fade-enter { opacity: 0; }
+    .fade-enter-active { opacity: 1; transition: opacity 150ms ease; }
+    .slide-in { transform: translateX(100%); }
+    .slide-in-active { transform: translateX(0); transition: transform 200ms ease; }
+  </style>
+</head>
+<body class="min-h-screen bg-zinc-50 text-zinc-900">
+  <!-- Header -->
+  <header class="sticky top-0 z-30 backdrop-blur bg-white/70 border-b border-zinc-200">
+    <div class="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-7 h-7"><path d="M3 6a1 1 0 0 1 1-1h6.382a1 1 0 0 1 .894.553L12.382 7H20a1 1 0 0 1 1 1v10.5A2.5 2.5 0 0 1 18.5 21h-13A2.5 2.5 0 0 1 3 18.5V6z"/></svg>
+        <div>
+          <h1 id="siteTitle" class="text-xl font-bold tracking-tight">Trash Day Merch</h1>
+          <p id="collectionSubtitle" class="text-sm text-zinc-500">Loading collection…</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <div class="relative hidden sm:block">
+          <input id="searchInput" type="search" placeholder="Search products…" class="w-64 rounded-xl border border-zinc-300 bg-white px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-zinc-400" />
+          <span class="pointer-events-none absolute right-3 top-2.5 text-zinc-400">⌘K</span>
+        </div>
+        <button id="cartButton" class="relative rounded-xl border border-zinc-300 bg-white px-4 py-2 text-sm hover:bg-zinc-100">
+          <span>Cart</span>
+          <span id="cartCount" class="ml-2 inline-flex items-center justify-center rounded-full bg-zinc-900 text-white text-xs w-5 h-5">0</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main -->
+  <main class="max-w-6xl mx-auto px-4 py-8">
+    <!-- Collection banner (optional) -->
+    <section id="collectionBanner" class="hidden mb-8 overflow-hidden rounded-2xl border border-zinc-200 bg-white"></section>
+
+    <!-- Products grid -->
+    <section id="productsSection">
+      <div id="grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6"></div>
+      <div id="emptyState" class="hidden text-center py-16 text-zinc-500">No products found.</div>
+      <div id="loadingGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+        <!-- skeletons -->
+        <template id="cardSkeleton">
+          <div class="animate-pulse overflow-hidden rounded-2xl border border-zinc-200 bg-white">
+            <div class="aspect-square bg-zinc-200"></div>
+            <div class="p-4 space-y-2">
+              <div class="h-4 bg-zinc-200 rounded w-3/4"></div>
+              <div class="h-4 bg-zinc-200 rounded w-1/3"></div>
+              <div class="h-9 bg-zinc-200 rounded w-full"></div>
+            </div>
+          </div>
+        </template>
+      </div>
+    </section>
+  </main>
+
+  <!-- Product Modal -->
+  <div id="productModal" class="fixed inset-0 z-40 hidden">
+    <div id="modalBackdrop" class="absolute inset-0 bg-black/30"></div>
+    <div class="absolute inset-y-8 left-1/2 -translate-x-1/2 w-[min(900px,95vw)] overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-xl">
+      <div class="grid md:grid-cols-2">
+        <div class="p-0 md:p-0">
+          <div id="modalImageWrap" class="aspect-square bg-zinc-100 overflow-hidden">
+            <img id="modalImage" alt="" class="w-full h-full object-cover" />
+          </div>
+          <div id="modalThumbs" class="p-3 flex gap-3 overflow-x-auto"></div>
+        </div>
+        <div class="p-6 space-y-4">
+          <div class="flex items-start justify-between gap-4">
+            <h3 id="modalTitle" class="text-lg font-semibold"></h3>
+            <button id="modalClose" class="rounded-lg border border-zinc-300 bg-white px-3 py-1.5 text-sm hover:bg-zinc-100">Close</button>
+          </div>
+          <p id="modalPrice" class="text-xl font-bold"></p>
+          <p id="modalDesc" class="text-sm text-zinc-600 max-h-40 overflow-auto"></p>
+          <div class="space-y-3">
+            <label class="block text-sm font-medium">Variant</label>
+            <select id="variantSelect" class="w-full rounded-xl border border-zinc-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-zinc-400"></select>
+            <div class="flex items-center gap-3">
+              <label class="text-sm font-medium" for="qtyInput">Qty</label>
+              <input id="qtyInput" type="number" min="1" value="1" class="w-20 rounded-xl border border-zinc-300 bg-white px-3 py-2 text-sm" />
+            </div>
+            <button id="addToCartBtn" class="w-full rounded-xl bg-zinc-900 text-white px-4 py-3 text-sm font-semibold hover:bg-zinc-800 disabled:opacity-50">Add to cart</button>
+            <div id="modalStatus" class="text-sm text-zinc-500"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Cart Drawer -->
+  <div id="cartDrawer" class="fixed inset-0 z-50 hidden">
+    <div id="drawerBackdrop" class="absolute inset-0 bg-black/30"></div>
+    <aside class="absolute right-0 top-0 h-full w-[min(420px,95vw)] bg-white border-l border-zinc-200 flex flex-col">
+      <div class="p-4 border-b border-zinc-200 flex items-center justify-between">
+        <h3 class="text-lg font-semibold">Your Cart</h3>
+        <button id="drawerClose" class="rounded-lg border border-zinc-300 bg-white px-3 py-1.5 text-sm hover:bg-zinc-100">Close</button>
+      </div>
+      <div id="cartLines" class="flex-1 overflow-auto divide-y divide-zinc-200"></div>
+      <div class="p-4 border-t border-zinc-200 space-y-2">
+        <div class="flex items-center justify-between text-sm">
+          <span>Subtotal</span>
+          <span id="cartSubtotal" class="font-medium">—</span>
+        </div>
+        <button id="checkoutBtn" class="w-full rounded-xl bg-zinc-900 text-white px-4 py-3 text-sm font-semibold hover:bg-zinc-800 disabled:opacity-50">Checkout</button>
+        <p class="text-xs text-zinc-500">Taxes & shipping calculated at checkout.</p>
+      </div>
+    </aside>
+  </div>
+
+  <script>
+    // ====== CONFIG (replace if needed) ======
+    const SHOPIFY_DOMAIN = "projectilestore.myshopify.com";
+    const STOREFRONT_ACCESS_TOKEN = "60c00bedc85c5101f69c397b1758b6e8";
+    const COLLECTION_HANDLE = "trash-day-merch-1";
+    const API_VERSION = "2024-07"; // Shopify Storefront API version
+
+    const GQL_ENDPOINT = `https://${SHOPIFY_DOMAIN}/api/${API_VERSION}/graphql.json`;
+
+    // ====== GraphQL helper ======
+    async function shopifyGQL(query, variables = {}) {
+      const res = await fetch(GQL_ENDPOINT, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Shopify-Storefront-Access-Token': STOREFRONT_ACCESS_TOKEN,
+        },
+        body: JSON.stringify({ query, variables }),
+      });
+      const json = await res.json();
+      if (json.errors) {
+        console.error(json.errors);
+        throw new Error(json.errors.map(e => e.message).join('\n'));
+      }
+      return json.data;
+    }
+
+    // ====== Queries & Mutations ======
+    const COLLECTION_QUERY = `
+      query CollectionProducts($handle: String!, $productsFirst: Int!, $productsAfter: String) {
+        collectionByHandle(handle: $handle) {
+          id
+          title
+          description
+          image { url altText }
+          products(first: $productsFirst, after: $productsAfter) {
+            pageInfo { hasNextPage endCursor }
+            nodes {
+              id
+              title
+              handle
+              description
+              featuredImage { url altText }
+              images(first: 8) { nodes { url altText } }
+              priceRange {
+                minVariantPrice { amount currencyCode }
+                maxVariantPrice { amount currencyCode }
+              }
+              variants(first: 25) {
+                nodes {
+                  id
+                  title
+                  availableForSale
+                  price { amount currencyCode }
+                  compareAtPrice { amount currencyCode }
+                  selectedOptions { name value }
+                  image { url altText }
+                }
+              }
+            }
+          }
+        }
+      }
+    `;
+
+    const CART_CREATE = `
+      mutation CartCreate($lines: [CartLineInput!]) {
+        cartCreate(input: { lines: $lines }) {
+          cart {
+            id
+            checkoutUrl
+            totalQuantity
+            cost { subtotalAmount { amount currencyCode } totalAmount { amount currencyCode } }
+          }
+        }
+      }
+    `;
+
+    const CART_QUERY = `
+      query Cart($id: ID!) {
+        cart(id: $id) {
+          id
+          checkoutUrl
+          totalQuantity
+          cost { subtotalAmount { amount currencyCode } totalAmount { amount currencyCode } }
+          lines(first: 100) {
+            nodes {
+              id
+              quantity
+              cost { amountPerQuantity { amount currencyCode } subtotalAmount { amount currencyCode } totalAmount { amount currencyCode } }
+              merchandise {
+                ... on ProductVariant {
+                  id
+                  title
+                  image { url altText }
+                  product { title handle }
+                  price { amount currencyCode }
+                }
+              }
+            }
+          }
+        }
+      }
+    `;
+
+    const CART_LINES_ADD = `
+      mutation CartLinesAdd($cartId: ID!, $lines: [CartLineInput!]!) {
+        cartLinesAdd(cartId: $cartId, lines: $lines) {
+          cart { id totalQuantity }
+          userErrors { field message }
+        }
+      }
+    `;
+
+    const CART_LINES_UPDATE = `
+      mutation CartLinesUpdate($cartId: ID!, $lines: [CartLineUpdateInput!]!) {
+        cartLinesUpdate(cartId: $cartId, lines: $lines) {
+          cart { id totalQuantity }
+          userErrors { field message }
+        }
+      }
+    `;
+
+    const CART_LINES_REMOVE = `
+      mutation CartLinesRemove($cartId: ID!, $lineIds: [ID!]!) {
+        cartLinesRemove(cartId: $cartId, lineIds: $lineIds) {
+          cart { id totalQuantity }
+          userErrors { field message }
+        }
+      }
+    `;
+
+    // ====== Utilities ======
+    const $ = (sel, root=document) => root.querySelector(sel);
+    const $$ = (sel, root=document) => Array.from(root.querySelectorAll(sel));
+    const money = (amount, currency="USD") => new Intl.NumberFormat(undefined, { style: 'currency', currency }).format(parseFloat(amount || 0));
+
+    const CART_STORAGE_KEY = `shopify_cart_id_${SHOPIFY_DOMAIN}`;
+
+    function setLoading(show) {
+      $('#loadingGrid').classList.toggle('hidden', !show);
+      $('#grid').classList.toggle('hidden', show);
+    }
+
+    function productCardHTML(p) {
+      const img = p.featuredImage?.url || p.images?.nodes?.[0]?.url || '';
+      const alt = p.featuredImage?.altText || p.title;
+      const minPrice = p.priceRange?.minVariantPrice;
+      const priceText = minPrice ? money(minPrice.amount, minPrice.currencyCode) : '';
+      return `
+        <article class="overflow-hidden rounded-2xl border border-zinc-200 bg-white flex flex-col">
+          <button class="group relative" data-role="open-modal" data-id="${p.id}">
+            <div class="aspect-square bg-zinc-100 overflow-hidden">
+              ${img ? `<img src="${img}" alt="${alt}" class="w-full h-full object-cover group-hover:scale-105 transition" />` : ''}
+            </div>
+          </button>
+          <div class="p-4 flex-1 flex flex-col">
+            <h3 class="font-medium mb-1 line-clamp-1">${p.title}</h3>
+            <p class="text-sm text-zinc-600 line-clamp-2 mb-3">${(p.description || '').replace(/<[^>]+>/g,'')}</p>
+            <div class="mt-auto flex items-center justify-between">
+              <span class="font-semibold">${priceText}</span>
+              <button class="rounded-xl border border-zinc-300 bg-white px-3 py-1.5 text-sm hover:bg-zinc-100" data-role="open-modal" data-id="${p.id}">View</button>
+            </div>
+          </div>
+        </article>
+      `;
+    }
+
+    function lineItemHTML(line) {
+      const v = line.merchandise;
+      const img = v.image?.url || '';
+      const title = `${v.product?.title || ''}`;
+      const variantTitle = v.title && v.title !== 'Default Title' ? ` • ${v.title}` : '';
+      const unit = v.price; // MoneyV2
+      const unitPrice = unit ? money(unit.amount, unit.currencyCode) : '';
+      const lineTotal = line.cost?.totalAmount ? money(line.cost.totalAmount.amount, line.cost.totalAmount.currencyCode) : unitPrice;
+      return `
+        <div class="p-4 flex gap-3">
+          <div class="w-16 h-16 rounded-lg bg-zinc-100 overflow-hidden flex-shrink-0">${img ? `<img src="${img}" alt="" class="w-full h-full object-cover"/>` : ''}</div>
+          <div class="flex-1 min-w-0">
+            <div class="flex items-start justify-between gap-2">
+              <div class="min-w-0">
+                <div class="font-medium truncate">${title}${variantTitle}</div>
+                <div class="text-sm text-zinc-500">${unitPrice}</div>
+              </div>
+              <button class="text-sm text-zinc-500 hover:text-zinc-900" data-role="remove-line" data-line-id="${line.id}">Remove</button>
+            </div>
+            <div class="mt-2 flex items-center gap-2">
+              <button class="rounded-lg border border-zinc-300 px-2" data-role="decr" data-line-id="${line.id}">−</button>
+              <input class="w-14 text-center rounded-lg border border-zinc-300" type="number" min="1" value="${line.quantity}" data-role="qty" data-line-id="${line.id}" />
+              <button class="rounded-lg border border-zinc-300 px-2" data-role="incr" data-line-id="${line.id}">+</button>
+              <span class="ml-auto text-sm text-zinc-600">${lineTotal}</span>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    // ====== State ======
+    let PRODUCTS = [];
+    let PRODUCT_MAP = new Map();
+    let CURRENT_PRODUCT = null;
+    let CURRENT_VARIANT = null;
+
+    // ====== Load collection ======
+    async function loadCollection(handle) {
+      setLoading(true);
+      $('#grid').innerHTML = '';
+      $('#emptyState').classList.add('hidden');
+
+      let all = []; let cursor = null; let title = '';
+      do {
+        const data = await shopifyGQL(COLLECTION_QUERY, { handle, productsFirst: 24, productsAfter: cursor });
+        const col = data.collectionByHandle;
+        if (!col) throw new Error(`Collection not found: ${handle}`);
+        title = col.title;
+        const nodes = col.products.nodes || [];
+        all = all.concat(nodes);
+        const pageInfo = col.products.pageInfo;
+        cursor = pageInfo.hasNextPage ? pageInfo.endCursor : null;
+
+        // Banner on first page
+        if ($('#collectionBanner').classList.contains('hidden')) {
+          const banner = $('#collectionBanner');
+          banner.classList.toggle('hidden', false);
+          banner.innerHTML = `
+            <div class="grid md:grid-cols-2">
+              <div class="p-6">
+                <h2 class="text-2xl font-bold">${col.title}</h2>
+                ${col.description ? `<p class="mt-2 text-zinc-600">${col.description}</p>` : ''}
+              </div>
+              ${col.image?.url ? `<div class="aspect-[2/1] md:aspect-auto bg-zinc-100 overflow-hidden"><img src="${col.image.url}" alt="${col.image.altText||''}" class="w-full h-full object-cover" /></div>` : '<div class="hidden md:block"></div>'}
+            </div>
+          `;
+          $('#collectionSubtitle').textContent = col.title;
+          document.title = `${col.title} — Trash Day Merch`;
+        }
+      } while (cursor);
+
+      PRODUCTS = all;
+      PRODUCT_MAP = new Map(PRODUCTS.map(p => [p.id, p]));
+
+      setLoading(false);
+      renderGrid(PRODUCTS);
+    }
+
+    function renderGrid(list) {
+      const grid = $('#grid');
+      grid.innerHTML = list.map(productCardHTML).join('');
+      $('#emptyState').classList.toggle('hidden', list.length !== 0);
+    }
+
+    // ====== Modal logic ======
+    function openProductModal(productId) {
+      const p = PRODUCT_MAP.get(productId);
+      if (!p) return;
+      CURRENT_PRODUCT = p;
+
+      const images = p.images?.nodes || [];
+      const mainImg = p.featuredImage?.url || images[0]?.url || '';
+      $('#modalImage').src = mainImg;
+      $('#modalImage').alt = p.featuredImage?.altText || p.title;
+
+      $('#modalThumbs').innerHTML = images.slice(0, 8).map((im, i) => `
+        <button class="w-16 h-16 rounded-lg overflow-hidden border border-zinc-200 ${i===0?'ring-2 ring-zinc-900':''}" data-role="thumb" data-src="${im.url}">
+          <img src="${im.url}" alt="${im.altText||''}" class="w-full h-full object-cover" />
+        </button>
+      `).join('');
+
+      $('#modalTitle').textContent = p.title;
+      $('#modalDesc').textContent = (p.description || '').replace(/<[^>]+>/g,'');
+
+      // Build variant select
+      const vs = p.variants?.nodes || [];
+      const options = vs.map(v => {
+        const price = v.price ? money(v.price.amount, v.price.currencyCode) : '';
+        const disabled = !v.availableForSale;
+        return `<option value="${v.id}" ${disabled?'disabled':''}>${v.title} ${disabled?'(Sold out)':''} — ${price}</option>`;
+      }).join('');
+      const select = $('#variantSelect');
+      select.innerHTML = options || '<option disabled>No variants</option>';
+      select.disabled = vs.length === 0;
+      select.value = vs.find(v => v.availableForSale)?.id || vs[0]?.id || '';
+
+      // Update price display according to selected variant
+      updateModalPrice();
+
+      $('#qtyInput').value = 1;
+      $('#modalStatus').textContent = '';
+
+      // Show modal
+      $('#productModal').classList.remove('hidden');
+    }
+
+    function closeProductModal() {
+      $('#productModal').classList.add('hidden');
+    }
+
+    function updateModalPrice() {
+      const variantId = $('#variantSelect').value;
+      const v = (CURRENT_PRODUCT?.variants?.nodes || []).find(x => x.id === variantId);
+      CURRENT_VARIANT = v || null;
+      if (v?.price) {
+        $('#modalPrice').textContent = money(v.price.amount, v.price.currencyCode);
+      } else {
+        const minPrice = CURRENT_PRODUCT?.priceRange?.minVariantPrice;
+        $('#modalPrice').textContent = minPrice ? money(minPrice.amount, minPrice.currencyCode) : '';
+      }
+      $('#addToCartBtn').disabled = !v?.availableForSale;
+    }
+
+    // ====== Cart logic ======
+    async function ensureCart() {
+      let cartId = localStorage.getItem(CART_STORAGE_KEY);
+      if (cartId) return cartId;
+      const data = await shopifyGQL(CART_CREATE, { lines: [] });
+      cartId = data.cartCreate.cart.id;
+      localStorage.setItem(CART_STORAGE_KEY, cartId);
+      return cartId;
+    }
+
+    async function refreshCart() {
+      const cartId = localStorage.getItem(CART_STORAGE_KEY);
+      if (!cartId) {
+        $('#cartCount').textContent = '0';
+        $('#cartLines').innerHTML = '<div class="p-6 text-sm text-zinc-500">Your cart is empty.</div>';
+        $('#cartSubtotal').textContent = '—';
+        $('#checkoutBtn').disabled = true;
+        return;
+      }
+      const data = await shopifyGQL(CART_QUERY, { id: cartId });
+      const cart = data.cart;
+      $('#cartCount').textContent = cart.totalQuantity ?? 0;
+      const lines = cart.lines?.nodes || [];
+      $('#cartLines').innerHTML = lines.length ? lines.map(lineItemHTML).join('') : '<div class="p-6 text-sm text-zinc-500">Your cart is empty.</div>';
+      const sub = cart.cost?.subtotalAmount;
+      $('#cartSubtotal').textContent = sub ? money(sub.amount, sub.currencyCode) : '—';
+      $('#checkoutBtn').disabled = (cart.totalQuantity ?? 0) === 0;
+      $('#checkoutBtn').onclick = () => { window.location.href = cart.checkoutUrl; };
+    }
+
+    async function addToCart(variantId, quantity) {
+      const cartId = await ensureCart();
+      const add = await shopifyGQL(CART_LINES_ADD, { cartId, lines: [{ merchandiseId: variantId, quantity }] });
+      if (add.cartLinesAdd?.userErrors?.length) throw new Error(add.cartLinesAdd.userErrors.map(e=>e.message).join(', '));
+      await refreshCart();
+    }
+
+    async function updateLine(lineId, quantity) {
+      const cartId = localStorage.getItem(CART_STORAGE_KEY);
+      if (!cartId) return;
+      if (quantity <= 0) return removeLine(lineId);
+      const upd = await shopifyGQL(CART_LINES_UPDATE, { cartId, lines: [{ id: lineId, quantity }] });
+      if (upd.cartLinesUpdate?.userErrors?.length) throw new Error(upd.cartLinesUpdate.userErrors.map(e=>e.message).join(', '));
+      await refreshCart();
+    }
+
+    async function removeLine(lineId) {
+      const cartId = localStorage.getItem(CART_STORAGE_KEY);
+      if (!cartId) return;
+      const rem = await shopifyGQL(CART_LINES_REMOVE, { cartId, lineIds: [lineId] });
+      if (rem.cartLinesRemove?.userErrors?.length) throw new Error(rem.cartLinesRemove.userErrors.map(e=>e.message).join(', '));
+      await refreshCart();
+    }
+
+    // ====== Events ======
+    document.addEventListener('click', (e) => {
+      const btn = e.target.closest('[data-role]');
+      if (!btn) return;
+      const role = btn.getAttribute('data-role');
+
+      if (role === 'open-modal') {
+        const id = btn.getAttribute('data-id');
+        openProductModal(id);
+      }
+      if (role === 'thumb') {
+        const src = btn.getAttribute('data-src');
+        $('#modalImage').src = src;
+        $$('#modalThumbs button').forEach(b => b.classList.remove('ring-2','ring-zinc-900'));
+        btn.classList.add('ring-2','ring-zinc-900');
+      }
+      if (role === 'remove-line') {
+        const id = btn.getAttribute('data-line-id');
+        removeLine(id).catch(err => alert(err.message));
+      }
+      if (role === 'decr') {
+        const id = btn.getAttribute('data-line-id');
+        const input = document.querySelector(`input[data-role="qty"][data-line-id="${id}"]`);
+        const val = Math.max(1, parseInt(input.value || '1', 10) - 1);
+        updateLine(id, val).catch(err => alert(err.message));
+      }
+      if (role === 'incr') {
+        const id = btn.getAttribute('data-line-id');
+        const input = document.querySelector(`input[data-role="qty"][data-line-id="${id}"]`);
+        const val = Math.max(1, parseInt(input.value || '1', 10) + 1);
+        updateLine(id, val).catch(err => alert(err.message));
+      }
+    });
+
+    $('#cartButton').addEventListener('click', () => {
+      $('#cartDrawer').classList.remove('hidden');
+      refreshCart();
+    });
+    $('#drawerClose').addEventListener('click', () => $('#cartDrawer').classList.add('hidden'));
+    $('#drawerBackdrop').addEventListener('click', () => $('#cartDrawer').classList.add('hidden'));
+
+    $('#modalClose').addEventListener('click', closeProductModal);
+    $('#modalBackdrop').addEventListener('click', closeProductModal);
+    $('#variantSelect').addEventListener('change', updateModalPrice);
+
+    $('#addToCartBtn').addEventListener('click', async () => {
+      try {
+        const qty = Math.max(1, parseInt($('#qtyInput').value || '1', 10));
+        const variantId = $('#variantSelect').value;
+        $('#addToCartBtn').disabled = true;
+        $('#modalStatus').textContent = 'Adding…';
+        await addToCart(variantId, qty);
+        $('#modalStatus').textContent = 'Added to cart ✅';
+        $('#addToCartBtn').disabled = false;
+      } catch (err) {
+        $('#modalStatus').textContent = `Error: ${err.message}`;
+        $('#addToCartBtn').disabled = false;
+      }
+    });
+
+    // Search (Cmd/Ctrl+K)
+    window.addEventListener('keydown', (e) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        $('#searchInput').focus();
+      }
+    });
+    $('#searchInput').addEventListener('input', (e) => {
+      const q = e.target.value.toLowerCase();
+      const filtered = PRODUCTS.filter(p => p.title.toLowerCase().includes(q) || (p.description||'').toLowerCase().includes(q));
+      renderGrid(filtered);
+    });
+
+    // ====== Boot ======
+    // Render skeletons
+    const skeleton = $('#cardSkeleton').content.firstElementChild;
+    const lg = $('#loadingGrid');
+    lg.innerHTML = '';
+    for (let i=0;i<6;i++) lg.appendChild(skeleton.cloneNode(true));
+
+    // Load collection & cart
+    loadCollection(COLLECTION_HANDLE).catch(err => {
+      setLoading(false);
+      $('#grid').innerHTML = `<div class=\"p-6 rounded-xl bg-red-50 border border-red-200 text-red-800\">${err.message}</div>`;
+    });
+    refreshCart().catch(console.error);
+  </script>
+</body>
+</html>

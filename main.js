@@ -75,7 +75,7 @@ if (listenBtn) {
 // Join button -> Store Page
 if (joinBtn) {
   joinBtn.addEventListener('click', () => {
-    window.location.href = 'store.html';
+    window.location.href = 'shop_store3.html';
   });
 }
 
