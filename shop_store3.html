@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -7,6 +8,8 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     /* Simple modal + drawer transitions */
+    #modalPanel { -webkit-overflow-scrolling: touch; }
+
     .fade-enter { opacity: 0; }
     .fade-enter-active { opacity: 1; transition: opacity 150ms ease; }
     .slide-in { transform: translateX(100%); }
@@ -100,7 +103,9 @@
   <!-- Product Modal -->
   <div id="productModal" class="fixed inset-0 z-40 hidden">
     <div id="modalBackdrop" class="absolute inset-0 bg-black/50"></div>
-    <div class="absolute inset-y-8 left-1/2 -translate-x-1/2 w-[min(900px,95vw)] overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-900 shadow-xl">
+    <div id="modalPanel" class="absolute inset-y-2 sm:inset-y-8 left-1/2 -translate-x-1/2 w-[min(900px,95vw)]
+      max-h-[calc(100svh-1rem)] sm:max-h-[calc(100svh-4rem)]
+      overflow-y-auto overscroll-contain rounded-2xl border border-zinc-800 bg-zinc-900 shadow-xl">
       <div class="grid md:grid-cols-2">
         <div class="p-0 md:p-0">
           <div id="modalImageWrap" class="aspect-square bg-zinc-800 overflow-hidden">
@@ -116,8 +121,8 @@
           <p id="modalPrice" class="text-xl font-bold"></p>
           <p id="modalDesc" class="text-sm text-zinc-400 max-h-40 overflow-auto"></p>
           <div class="space-y-3">
-            <label class="block text-sm font-medium">Variant</label>
-            <select id="variantSelect" class="w-full rounded-xl border border-zinc-700 bg-black text-zinc-100 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-zinc-600"></select>
+            <div id="optionPickers" class="space-y-3"></div>
+            <select id="variantSelect" class="hidden" aria-hidden="true"></select>
             <div class="flex items-center gap-3">
               <label class="text-sm font-medium" for="qtyInput">Qty</label>
               <input id="qtyInput" type="number" min="1" value="1" class="w-20 rounded-xl border border-zinc-700 bg-black text-zinc-100 px-3 py-2 text-sm" />
@@ -194,6 +199,8 @@
               description
               featuredImage { url altText }
               images(first: 8) { nodes { url altText } }
+              options { name values }
+
               priceRange {
                 minVariantPrice { amount currencyCode }
                 maxVariantPrice { amount currencyCode }
@@ -404,6 +411,133 @@
     }
 
     // ====== Modal logic ======
+    // ====== Option helpers ======
+    function normalizeOptions(opts) {
+      // Remove meaningless "Title"/"Default Title"
+      return (opts || []).filter(o => o && o.name && o.name.toLowerCase() !== 'title');
+    }
+    function variantMatchesSelection(variant, selection) {
+      const sel = Object.entries(selection);
+      return sel.every(([name, val]) =>
+        (variant.selectedOptions || []).some(o =>
+          o.name === name && o.value === val
+        )
+      );
+    }
+    function findVariantBySelection(product, selection) {
+      const variants = product.variants?.nodes || [];
+      return variants.find(v => variantMatchesSelection(v, selection)) || null;
+    }
+    // Which values are actually available for a given option (given current partial selection)
+    function valuesAvailability(product, optionName, currentSelection) {
+      const variants = product.variants?.nodes || [];
+      const other = { ...currentSelection };
+      delete other[optionName];
+      // Map each possible value -> is there any available variant that matches others + this value?
+      const values = (product.options || []).find(o => o.name === optionName)?.values || [];
+      const map = new Map();
+      for (const val of values) {
+        const ok = variants.some(v => {
+          if (!v.availableForSale) return false;
+          // must match other selected options
+          const matchesOther = Object.entries(other).every(([n, vv]) =>
+            (v.selectedOptions || []).some(o => o.name === n && o.value === vv)
+          );
+          if (!matchesOther) return false;
+          // must include this value for this option
+          return (v.selectedOptions || []).some(o => o.name === optionName && o.value === val);
+        });
+        map.set(val, ok);
+      }
+      return map;
+    }
+    function renderOptionPickers(product, selection) {
+  const container = $('#optionPickers');
+  const options = normalizeOptions(product.options);
+  if (!options.length) {
+    container.innerHTML = ''; // nothing to show (single default variant)
+    return;
+  }
+
+  const blocks = options.map(opt => {
+    const avail = valuesAvailability(product, opt.name, selection);
+    const chips = opt.values.map(val => {
+      const selected = selection[opt.name] === val;
+      const enabled = avail.get(val);
+      const base = "px-3 py-1.5 rounded-xl border text-sm";
+      const ui = selected
+        ? "border-red-500 ring-2 ring-red-500"
+        : "border-zinc-700 hover:border-zinc-500";
+      const state = enabled ? "cursor-pointer" : "opacity-50 cursor-not-allowed";
+      return `
+        <button type="button"
+          class="${base} ${ui} ${state} bg-black text-zinc-100"
+          data-role="option" data-name="${opt.name}" data-value="${val}"
+          ${enabled ? "" : "disabled"}
+          aria-pressed="${selected ? "true" : "false"}"
+          aria-label="${opt.name} ${val}">
+          ${val}
+        </button>
+      `;
+    }).join('');
+    return `
+      <div>
+        <label class="block text-sm font-medium mb-2">${opt.name}</label>
+        <div class="flex flex-wrap gap-2" data-option-group="${opt.name}">
+          ${chips}
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  container.innerHTML = blocks;
+}
+
+  function syncVariantSelection(product, selection) {
+    // Find exact variant match; if not available, pick the first available variant that matches *all* options
+    let v = findVariantBySelection(product, selection);
+    if (!v || !v.availableForSale) {
+      const firstAvail = (product.variants?.nodes || []).find(x => x.availableForSale);
+      if (firstAvail) {
+        // snap selection to that variant's options
+        selection = {};
+        (firstAvail.selectedOptions || []).forEach(o => selection[o.name] = o.value);
+        v = firstAvail;
+      } else {
+        v = null;
+      }
+    }
+    CURRENT_VARIANT = v;
+    // keep hidden select synced (fallback)
+    const vs = product.variants?.nodes || [];
+    const select = $('#variantSelect');
+    select.innerHTML = vs.map(vv => {
+      const price = vv.price ? money(vv.price.amount, vv.price.currencyCode) : '';
+      const disabled = !vv.availableForSale;
+      return `<option value="${vv.id}" ${disabled?'disabled':''}>${vv.title} ${disabled?'(Sold out)':''} — ${price}</option>`;
+    }).join('');
+    if (v) select.value = v.id;
+
+    // Price + button state + status
+    updateModalPrice(); // now reads CURRENT_VARIANT
+    const addBtn = $('#addToCartBtn');
+    const status = $('#modalStatus');
+    if (!v) {
+      addBtn.disabled = true;
+      status.textContent = 'Unavailable for this selection';
+    } else if (!v.availableForSale) {
+      addBtn.disabled = true;
+      status.textContent = 'Sold out for this selection';
+    } else {
+      addBtn.disabled = false;
+      status.textContent = '';
+    }
+
+    // Rerender chips to reflect availability & selected states
+    renderOptionPickers(product, selection);
+    return selection;
+  }
+
     function openProductModal(productId) {
       const p = PRODUCT_MAP.get(productId);
       if (!p) return;
@@ -423,36 +557,30 @@
       $('#modalTitle').textContent = p.title;
       $('#modalDesc').textContent = (p.description || '').replace(/<[^>]+>/g,'');
 
-      // Build variant select
-      const vs = p.variants?.nodes || [];
-      const options = vs.map(v => {
-        const price = v.price ? money(v.price.amount, v.price.currencyCode) : '';
-        const disabled = !v.availableForSale;
-        return `<option value="${v.id}" ${disabled?'disabled':''}>${v.title} ${disabled?'(Sold out)':''} — ${price}</option>`;
-      }).join('');
-      const select = $('#variantSelect');
-      select.innerHTML = options || '<option disabled>No variants</option>';
-      select.disabled = vs.length === 0;
-      select.value = vs.find(v => v.availableForSale)?.id || vs[0]?.id || '';
-
-      // Update price display according to selected variant
-      updateModalPrice();
-
+        // Initialize option selection from first available variant (or any variant)
+      let selection = {};
+      const firstAvail = (p.variants?.nodes || []).find(v => v.availableForSale) || (p.variants?.nodes || [])[0];
+      if (firstAvail) {
+        (firstAvail.selectedOptions || []).forEach(o => selection[o.name] = o.value);
+      }
+      // Render pickers + sync CURRENT_VARIANT, price, button state
+      renderOptionPickers(p, selection);
+      selection = syncVariantSelection(p, selection);
       $('#qtyInput').value = 1;
       $('#modalStatus').textContent = '';
 
       // Show modal
+      document.body.style.overflow = 'hidden'; // lock background scroll
       $('#productModal').classList.remove('hidden');
     }
 
     function closeProductModal() {
       $('#productModal').classList.add('hidden');
+      document.body.style.overflow = ''; // restore
     }
 
     function updateModalPrice() {
-      const variantId = $('#variantSelect').value;
-      const v = (CURRENT_PRODUCT?.variants?.nodes || []).find(x => x.id === variantId);
-      CURRENT_VARIANT = v || null;
+      const v = CURRENT_VARIANT;
       if (v?.price) {
         $('#modalPrice').textContent = money(v.price.amount, v.price.currencyCode);
       } else {
@@ -526,6 +654,19 @@
         const id = btn.getAttribute('data-id');
         openProductModal(id);
       }
+      if (role === 'option') {
+        const name = btn.getAttribute('data-name');
+        const value = btn.getAttribute('data-value');
+        // Build current selection from highlighted buttons
+        const selection = {};
+        // read currently selected chips by checking aria-pressed OR ring class
+        $(`[data-option-group="${name}"]`); // no-op, just ensures DOM present
+        // Use CURRENT_VARIANT as the current truth, then override the clicked name
+        (CURRENT_VARIANT?.selectedOptions || []).forEach(o => selection[o.name] = o.value);
+        selection[name] = value;
+        // Re-sync (find matching variant, update price, disable/enable add)
+        syncVariantSelection(CURRENT_PRODUCT, selection);
+      }
       if (role === 'thumb') {
         const src = btn.getAttribute('data-src');
         $('#modalImage').src = src;
@@ -559,12 +700,16 @@
 
     document.getElementById('modalClose').addEventListener('click', closeProductModal);
     document.getElementById('modalBackdrop').addEventListener('click', closeProductModal);
-    document.getElementById('variantSelect').addEventListener('change', updateModalPrice);
-
+    document.getElementById('variantSelect').addEventListener('change', (e) => {
+      const id = e.target.value;
+      const v = (CURRENT_PRODUCT?.variants?.nodes || []).find(x => x.id === id) || null;
+      CURRENT_VARIANT = v;
+      updateModalPrice();
+    });
     document.getElementById('addToCartBtn').addEventListener('click', async () => {
       try {
         const qty = Math.max(1, parseInt(document.getElementById('qtyInput').value || '1', 10));
-        const variantId = document.getElementById('variantSelect').value;
+        const variantId = CURRENT_VARIANT?.id || document.getElementById('variantSelect').value;
         document.getElementById('addToCartBtn').disabled = true;
         document.getElementById('modalStatus').textContent = 'Adding…';
         await addToCart(variantId, qty);
