@@ -1,0 +1,263 @@
+{
+  "collection": {
+    "title": "Trash Day Merch",
+    "subtitle": "Official Projectile merch",
+    "description": "A self-hosted merch catalog with Stripe checkout.",
+    "currency": "USD"
+  },
+  "products": [
+    {
+      "id": "trash-day-tote-bag",
+      "slug": "trash-day-tote-bag",
+      "title": "TRASH DAY TOTE BAG",
+      "description": "Perfect for holding things",
+      "active": true,
+      "featuredImage": "assets/tote1.webp",
+      "images": [
+        "assets/tote1.webp",
+        "assets/tote2.webp"
+      ],
+      "options": [],
+      "variants": [
+        {
+          "id": "trash-day-tote-bag-default",
+          "label": "Default",
+          "priceCents": 1700,
+          "currency": "USD",
+          "available": true,
+          "image": "assets/tote1.webp",
+          "options": {}
+        }
+      ]
+    },
+    {
+      "id": "projectile-haus-t-shirt",
+      "slug": "projectile-haus-t-shirt",
+      "title": "PROJECTILE HAUS T SHIRT",
+      "description": "",
+      "active": true,
+      "featuredImage": "assets/haus_shirt.webp",
+      "images": [
+        "assets/haus_shirt.webp"
+      ],
+      "options": [
+        {
+          "name": "Size",
+          "values": [
+            "S",
+            "M",
+            "L",
+            "XL"
+          ]
+        }
+      ],
+      "variants": [
+        {
+          "id": "projectile-haus-t-shirt-s",
+          "label": "S",
+          "priceCents": 2500,
+          "currency": "USD",
+          "available": true,
+          "image": "assets/haus_shirt.webp",
+          "options": {
+            "Size": "S"
+          }
+        },
+        {
+          "id": "projectile-haus-t-shirt-m",
+          "label": "M",
+          "priceCents": 2500,
+          "currency": "USD",
+          "available": true,
+          "image": "assets/haus_shirt.webp",
+          "options": {
+            "Size": "M"
+          }
+        },
+        {
+          "id": "projectile-haus-t-shirt-l",
+          "label": "L",
+          "priceCents": 2500,
+          "currency": "USD",
+          "available": true,
+          "image": "assets/haus_shirt.webp",
+          "options": {
+            "Size": "L"
+          }
+        },
+        {
+          "id": "projectile-haus-t-shirt-xl",
+          "label": "XL",
+          "priceCents": 2500,
+          "currency": "USD",
+          "available": true,
+          "image": "assets/haus_shirt.webp",
+          "options": {
+            "Size": "XL"
+          }
+        }
+      ]
+    },
+    {
+      "id": "trash-day-t-shirt",
+      "slug": "trash-day-t-shirt",
+      "title": "TRASH DAY T SHIRT",
+      "description": "",
+      "active": true,
+      "featuredImage": "assets/truck_shirt.webp",
+      "images": [
+        "assets/truck_shirt.webp"
+      ],
+      "options": [
+        {
+          "name": "Size",
+          "values": [
+            "S",
+            "M",
+            "L",
+            "XL"
+          ]
+        }
+      ],
+      "variants": [
+        {
+          "id": "trash-day-t-shirt-s",
+          "label": "S",
+          "priceCents": 2500,
+          "currency": "USD",
+          "available": true,
+          "image": "assets/truck_shirt.webp",
+          "options": {
+            "Size": "S"
+          }
+        },
+        {
+          "id": "trash-day-t-shirt-m",
+          "label": "M",
+          "priceCents": 2500,
+          "currency": "USD",
+          "available": true,
+          "image": "assets/truck_shirt.webp",
+          "options": {
+            "Size": "M"
+          }
+        },
+        {
+          "id": "trash-day-t-shirt-l",
+          "label": "L",
+          "priceCents": 2500,
+          "currency": "USD",
+          "available": true,
+          "image": "assets/truck_shirt.webp",
+          "options": {
+            "Size": "L"
+          }
+        },
+        {
+          "id": "trash-day-t-shirt-xl",
+          "label": "XL",
+          "priceCents": 2500,
+          "currency": "USD",
+          "available": true,
+          "image": "assets/truck_shirt.webp",
+          "options": {
+            "Size": "XL"
+          }
+        }
+      ]
+    },
+    {
+      "id": "trash-day-zine",
+      "slug": "trash-day-zine",
+      "title": "TRASH DAY ZINE",
+      "description": "",
+      "active": true,
+      "featuredImage": "assets/zine.webp",
+      "images": [
+        "assets/zine.webp"
+      ],
+      "options": [],
+      "variants": [
+        {
+          "id": "trash-day-zine-default",
+          "label": "Default",
+          "priceCents": 1200,
+          "currency": "USD",
+          "available": true,
+          "image": "assets/zine.webp",
+          "options": {}
+        }
+      ]
+    },
+    {
+      "id": "trash-day-full-album-combo",
+      "slug": "trash-day-full-album-combo",
+      "title": "TRASH DAY FULL ALBUM COMBO",
+      "description": "FULL ALBUM COMBO DEAL INCLUDES TRASH DAY T-SHIRT, ALBUM ZINE, AND TOTE BAG",
+      "active": true,
+      "featuredImage": "assets/truck_shirt.webp",
+      "images": [
+        "assets/truck_shirt.webp",
+        "assets/zine.webp",
+        "assets/tote1.webp"
+      ],
+      "options": [
+        {
+          "name": "Size",
+          "values": [
+            "S",
+            "M",
+            "L",
+            "XL"
+          ]
+        }
+      ],
+      "variants": [
+        {
+          "id": "trash-day-full-album-combo-s",
+          "label": "S",
+          "priceCents": 4000,
+          "currency": "USD",
+          "available": true,
+          "image": "assets/truck_shirt.webp",
+          "options": {
+            "Size": "S"
+          }
+        },
+        {
+          "id": "trash-day-full-album-combo-m",
+          "label": "M",
+          "priceCents": 4000,
+          "currency": "USD",
+          "available": true,
+          "image": "assets/truck_shirt.webp",
+          "options": {
+            "Size": "M"
+          }
+        },
+        {
+          "id": "trash-day-full-album-combo-l",
+          "label": "L",
+          "priceCents": 4000,
+          "currency": "USD",
+          "available": true,
+          "image": "assets/truck_shirt.webp",
+          "options": {
+            "Size": "L"
+          }
+        },
+        {
+          "id": "trash-day-full-album-combo-xl",
+          "label": "XL",
+          "priceCents": 4000,
+          "currency": "USD",
+          "available": true,
+          "image": "assets/truck_shirt.webp",
+          "options": {
+            "Size": "XL"
+          }
+        }
+      ]
+    }
+  ]
+}

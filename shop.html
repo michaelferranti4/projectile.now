@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Trash Day Merch</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    #modalPanel { -webkit-overflow-scrolling: touch; }
+    #collectionSubtitle,
+    #collectionBanner h2 {
+      display: none !important;
+    }
+    #collectionBanner {
+      display: none !important;
+    }
+    :root {
+      --brand-h: 353;
+      --brand-s: 86%;
+      --brand-red: hsl(var(--brand-h), var(--brand-s), 54%);
+      --brand-red-100: hsl(var(--brand-h), var(--brand-s), 94%);
+      --brand-red-300: hsl(var(--brand-h), var(--brand-s), 74%);
+    }
+    body { font-family: Arial, sans-serif; }
+    .btn-layered-3d, .btn-layered-3d > *, .btn-layered-3d > *::before, .btn-layered-3d > *::after { box-sizing: border-box; }
+    .btn-layered-3d {
+      position: relative; display: inline-block; cursor: pointer; outline: none; border: 0;
+      font-weight: 700; text-transform: uppercase; padding: 0.9em 1.4em; border-radius: 0.75em;
+      transform-style: preserve-3d; transition: transform 150ms cubic-bezier(0,0,0.58,1);
+    }
+    .btn-layered-3d::before {
+      content: ""; position: absolute; inset: 0; border-radius: inherit;
+      transform: translate3d(0, 0.6em, -1em);
+      transition: transform 150ms cubic-bezier(0,0,0.58,1), box-shadow 150ms cubic-bezier(0,0,0.58,1);
+    }
+    .btn-layered-3d:hover { transform: translate(0, 0.2em); }
+    .btn-layered-3d:hover::before { transform: translate3d(0, 0.4em, -1em); }
+    .btn-layered-3d--red { color: var(--brand-red); background: var(--brand-red-100); border: 2px solid var(--brand-red); }
+    .btn-layered-3d--red::before { background: var(--brand-red-300); box-shadow: 0 0 0 2px var(--brand-red), 0 0.625em 0 0 var(--brand-red-100); }
+    .product-card.sold-out img { filter: grayscale(100%); opacity: 0.6; transition: filter .3s, opacity .3s; }
+    .product-card.sold-out::before {
+      content: "Sold Out"; position: absolute; top: 10%; left: -40%; width: 200%; text-align: center;
+      transform: rotate(-45deg); background: rgba(255, 0, 0, 0.85); color: #fff; font-weight: bold;
+      font-size: 1.1rem; padding: .5em 0; pointer-events: none; z-index: 2;
+    }
+  </style>
+</head>
+<body class="min-h-screen bg-black text-zinc-100">
+  <header class="sticky top-0 z-30 backdrop-blur bg-black/60 border-b border-zinc-800">
+    <div class="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <img src="assets/projectile-logo-2-white.png" alt="Projectile" class="h-7 w-auto" />
+        <div>
+          <h1 id="siteTitle" class="text-xl font-bold tracking-tight">Trash Day Merch</h1>
+          <p id="collectionSubtitle" class="text-sm text-zinc-400"></p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <div class="relative hidden sm:block">
+          <input id="searchInput" type="search" placeholder="Search products…" class="w-64 rounded-xl border border-zinc-700 bg-black text-zinc-100 placeholder-zinc-500 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-zinc-600" />
+          <span class="pointer-events-none absolute right-3 top-2.5 text-zinc-500">⌘K</span>
+        </div>
+        <button id="cartButton" class="relative rounded-xl border border-zinc-700 bg-zinc-900 text-zinc-100 px-4 py-2 text-sm hover:bg-zinc-800">
+          <span>Cart</span>
+          <span id="cartCount" class="ml-2 inline-flex items-center justify-center rounded-full bg-red-600 text-white text-xs w-5 h-5">0</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-6xl mx-auto px-4 py-8">
+    <section id="bannerMessage" class="hidden mb-6 rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-100"></section>
+    <section id="collectionBanner" class="hidden mb-8 overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-900"></section>
+    <section id="productsSection">
+      <div id="grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+      <div id="emptyState" class="hidden text-center py-16 text-zinc-400">No products found.</div>
+      <div id="loadingGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <template id="cardSkeleton">
+          <div class="animate-pulse overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-900">
+            <div class="aspect-square bg-zinc-800"></div>
+            <div class="p-4 space-y-2">
+              <div class="h-4 bg-zinc-800 rounded w-3/4"></div>
+              <div class="h-4 bg-zinc-800 rounded w-1/3"></div>
+              <div class="h-9 bg-zinc-800 rounded w-full"></div>
+            </div>
+          </div>
+        </template>
+      </div>
+    </section>
+  </main>
+
+  <div id="productModal" class="fixed inset-0 z-40 hidden">
+    <div id="modalBackdrop" class="absolute inset-0 bg-black/50"></div>
+    <div id="modalPanel" class="absolute inset-y-2 sm:inset-y-8 left-1/2 -translate-x-1/2 w-[min(900px,95vw)] max-h-[calc(100svh-1rem)] sm:max-h-[calc(100svh-4rem)] overflow-y-auto overscroll-contain rounded-2xl border border-zinc-800 bg-zinc-900 shadow-xl">
+      <div class="grid md:grid-cols-2">
+        <div>
+          <div id="modalImageWrap" class="aspect-square bg-zinc-800 overflow-hidden">
+            <img id="modalImage" alt="" class="w-full h-full object-cover" />
+          </div>
+          <div id="modalThumbs" class="p-3 flex gap-3 overflow-x-auto"></div>
+        </div>
+        <div class="p-6 space-y-4">
+          <div class="flex items-start justify-between gap-4">
+            <h3 id="modalTitle" class="text-lg font-semibold"></h3>
+            <button id="modalClose" class="rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-1.5 text-sm hover:bg-zinc-800">Close</button>
+          </div>
+          <p id="modalPrice" class="text-xl font-bold"></p>
+          <p id="modalDesc" class="text-sm text-zinc-400 max-h-40 overflow-auto"></p>
+          <div class="space-y-3">
+            <div id="optionPickers" class="space-y-3"></div>
+            <div class="flex items-center gap-3">
+              <label class="text-sm font-medium" for="qtyInput">Qty</label>
+              <input id="qtyInput" type="number" min="1" value="1" class="w-20 rounded-xl border border-zinc-700 bg-black text-zinc-100 px-3 py-2 text-sm" />
+            </div>
+            <button id="addToCartBtn" class="w-full btn-layered-3d btn-layered-3d--red disabled:opacity-50">Add to cart</button>
+            <div id="modalStatus" class="text-sm text-zinc-400"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="cartDrawer" class="fixed inset-0 z-50 hidden">
+    <div id="drawerBackdrop" class="absolute inset-0 bg-black/50"></div>
+    <aside class="absolute right-0 top-0 h-full w-[min(420px,95vw)] bg-zinc-900 border-l border-zinc-800 flex flex-col">
+      <div class="p-4 border-b border-zinc-800 flex items-center justify-between">
+        <h3 class="text-lg font-semibold">Your Cart</h3>
+        <button id="drawerClose" class="rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-1.5 text-sm hover:bg-zinc-800">Close</button>
+      </div>
+      <div id="cartLines" class="flex-1 overflow-auto divide-y divide-zinc-800"></div>
+      <div class="p-4 border-t border-zinc-800 space-y-2">
+        <div class="flex items-center justify-between text-sm">
+          <span>Subtotal</span>
+          <span id="cartSubtotal" class="font-medium">—</span>
+        </div>
+        <button id="checkoutBtn" class="w-full btn-layered-3d btn-layered-3d--red disabled:opacity-50">Checkout</button>
+        <p class="text-xs text-zinc-400">Shipping and tax are calculated in Stripe Checkout.</p>
+      </div>
+    </aside>
+  </div>
+
+  <form name="order-record" method="POST" data-netlify="true" hidden>
+    <input type="text" name="sessionId" />
+    <input type="email" name="customerEmail" />
+    <input type="text" name="amountTotal" />
+    <input type="text" name="shippingName" />
+    <textarea name="shippingAddress"></textarea>
+    <textarea name="items"></textarea>
+  </form>
+
+  <script>
+    const $ = (sel, root = document) => root.querySelector(sel);
+    const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
+    const CATALOG_URL = "/api/catalog";
+    const CHECKOUT_URL = "/api/create-checkout-session";
+    const CART_STORAGE_KEY = "projectile_shop_cart_v1";
+
+    let STORE = { collection: {}, products: [] };
+    let PRODUCT_MAP = new Map();
+    let CURRENT_PRODUCT = null;
+    let CURRENT_VARIANT = null;
+    let CURRENT_SELECTION = {};
+    let CART = [];
+
+    function money(cents, currency = "USD") {
+      return new Intl.NumberFormat(undefined, {
+        style: "currency",
+        currency
+      }).format((Number(cents || 0)) / 100);
+    }
+
+    function setLoading(show) {
+      $("#loadingGrid").classList.toggle("hidden", !show);
+      $("#grid").classList.toggle("hidden", show);
+    }
+
+    function loadCart() {
+      try {
+        CART = JSON.parse(localStorage.getItem(CART_STORAGE_KEY)) || [];
+      } catch (error) {
+        CART = [];
+      }
+    }
+
+    function saveCart() {
+      localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(CART));
+    }
+
+    function allVariantsSoldOut(product) {
+      return !(product.variants || []).some((variant) => variant.available);
+    }
+
+    function getPrimaryVariant(product) {
+      return (product.variants || []).find((variant) => variant.available) || product.variants[0] || null;
+    }
+
+    function getProductPriceText(product) {
+      const variants = product.variants || [];
+      if (!variants.length) return "";
+      const prices = variants.map((variant) => variant.priceCents);
+      const min = Math.min(...prices);
+      const max = Math.max(...prices);
+      return min === max ? money(min, variants[0].currency) : `${money(min, variants[0].currency)}+`;
+    }
+
+    function productCardHTML(product) {
+      const image = product.featuredImage || product.images[0] || "";
+      const soldOut = allVariantsSoldOut(product);
+      return `
+        <article class="product-card relative overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-900 flex flex-col ${soldOut ? "sold-out" : ""}">
+          <button class="group relative" data-role="open-modal" data-id="${product.id}">
+            <div class="aspect-square bg-zinc-800 overflow-hidden">
+              ${image ? `<img src="${image}" alt="${product.title}" class="w-full h-full object-cover group-hover:scale-105 transition" />` : ""}
+            </div>
+          </button>
+          <div class="p-4 flex-1 flex flex-col">
+            <h3 class="font-medium mb-1 line-clamp-1">${product.title}</h3>
+            <p class="text-sm text-zinc-400 line-clamp-2 mb-3">${(product.description || "").replace(/<[^>]+>/g, "")}</p>
+            <div class="mt-auto flex items-center justify-between">
+              <span class="font-semibold">${getProductPriceText(product)}</span>
+              <button class="btn-layered-3d btn-layered-3d--red" data-role="open-modal" data-id="${product.id}">View</button>
+            </div>
+          </div>
+        </article>
+      `;
+    }
+
+    function renderGrid(products) {
+      $("#grid").innerHTML = products.map(productCardHTML).join("");
+      $("#emptyState").classList.toggle("hidden", products.length !== 0);
+    }
+
+    function normalizeOptions(options) {
+      return (options || []).filter((option) => option && option.name);
+    }
+
+    function variantMatchesSelection(variant, selection) {
+      return Object.entries(selection).every(([name, value]) => variant.options?.[name] === value);
+    }
+
+    function findVariantBySelection(product, selection) {
+      return (product.variants || []).find((variant) => variantMatchesSelection(variant, selection)) || null;
+    }
+
+    function valuesAvailability(product, optionName, currentSelection) {
+      const otherSelection = { ...currentSelection };
+      delete otherSelection[optionName];
+      const option = (product.options || []).find((entry) => entry.name === optionName);
+      const result = new Map();
+      for (const value of option?.values || []) {
+        const available = (product.variants || []).some((variant) => {
+          if (!variant.available) return false;
+          if (variant.options?.[optionName] !== value) return false;
+          return Object.entries(otherSelection).every(([name, selected]) => variant.options?.[name] === selected);
+        });
+        result.set(value, available);
+      }
+      return result;
+    }
+
+    function renderOptionPickers(product, selection) {
+      const container = $("#optionPickers");
+      const options = normalizeOptions(product.options);
+      if (!options.length) {
+        container.innerHTML = "";
+        return;
+      }
+
+      container.innerHTML = options.map((option) => {
+        const availability = valuesAvailability(product, option.name, selection);
+        const chips = option.values.map((value) => {
+          const selected = selection[option.name] === value;
+          const enabled = availability.get(value);
+          const ui = selected
+            ? "border-red-500 ring-2 ring-red-500"
+            : "border-zinc-700 hover:border-zinc-500";
+          return `
+            <button
+              type="button"
+              class="px-3 py-1.5 rounded-xl border text-sm bg-black text-zinc-100 ${ui} ${enabled ? "cursor-pointer" : "opacity-50 cursor-not-allowed"}"
+              data-role="option"
+              data-name="${option.name}"
+              data-value="${value}"
+              ${enabled ? "" : "disabled"}
+            >
+              ${value}
+            </button>
+          `;
+        }).join("");
+
+        return `
+          <div>
+            <label class="block text-sm font-medium mb-2">${option.name}</label>
+            <div class="flex flex-wrap gap-2">
+              ${chips}
+            </div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    function syncVariantSelection(product, selection) {
+      let variant = findVariantBySelection(product, selection);
+      if (!variant || !variant.available) {
+        variant = (product.variants || []).find((item) => item.available) || product.variants[0] || null;
+        selection = variant ? { ...variant.options } : {};
+      }
+
+      CURRENT_SELECTION = selection;
+      CURRENT_VARIANT = variant;
+      renderOptionPickers(product, selection);
+      updateModalPrice();
+
+      const addToCartBtn = $("#addToCartBtn");
+      const status = $("#modalStatus");
+      if (!variant) {
+        addToCartBtn.disabled = true;
+        status.textContent = "Unavailable for this selection";
+      } else if (!variant.available) {
+        addToCartBtn.disabled = true;
+        status.textContent = "Sold out for this selection";
+      } else {
+        addToCartBtn.disabled = false;
+        status.textContent = "";
+      }
+    }
+
+    function updateModalPrice() {
+      if (CURRENT_VARIANT) {
+        $("#modalPrice").textContent = money(CURRENT_VARIANT.priceCents, CURRENT_VARIANT.currency);
+      } else if (CURRENT_PRODUCT) {
+        $("#modalPrice").textContent = getProductPriceText(CURRENT_PRODUCT);
+      } else {
+        $("#modalPrice").textContent = "";
+      }
+    }
+
+    function openProductModal(productId) {
+      const product = PRODUCT_MAP.get(productId);
+      if (!product) return;
+
+      CURRENT_PRODUCT = product;
+      const images = product.images?.length ? product.images : [product.featuredImage].filter(Boolean);
+      const mainImage = images[0] || "";
+      $("#modalImage").src = mainImage;
+      $("#modalImage").alt = product.title;
+      $("#modalThumbs").innerHTML = images.map((image, index) => `
+        <button class="w-16 h-16 rounded-lg overflow-hidden border border-zinc-800 ${index === 0 ? "ring-2 ring-red-500" : ""}" data-role="thumb" data-src="${image}">
+          <img src="${image}" alt="${product.title}" class="w-full h-full object-cover" />
+        </button>
+      `).join("");
+      $("#modalTitle").textContent = product.title;
+      $("#modalDesc").textContent = (product.description || "").replace(/<[^>]+>/g, "");
+      $("#qtyInput").value = 1;
+      syncVariantSelection(product, { ...(getPrimaryVariant(product)?.options || {}) });
+
+      document.body.style.overflow = "hidden";
+      $("#productModal").classList.remove("hidden");
+    }
+
+    function closeProductModal() {
+      $("#productModal").classList.add("hidden");
+      document.body.style.overflow = "";
+    }
+
+    function cartLineHTML(item, index) {
+      const product = PRODUCT_MAP.get(item.productId);
+      const variant = (product?.variants || []).find((entry) => entry.id === item.variantId);
+      if (!product || !variant) return "";
+      const image = variant.image || product.featuredImage || product.images?.[0] || "";
+      const lineTotal = money(variant.priceCents * item.quantity, variant.currency);
+      return `
+        <div class="p-4 flex gap-3">
+          <div class="w-16 h-16 rounded-lg bg-zinc-800 overflow-hidden flex-shrink-0">${image ? `<img src="${image}" alt="" class="w-full h-full object-cover" />` : ""}</div>
+          <div class="flex-1 min-w-0">
+            <div class="flex items-start justify-between gap-2">
+              <div class="min-w-0">
+                <div class="font-medium truncate">${product.title}${variant.label ? ` • ${variant.label}` : ""}</div>
+                <div class="text-sm text-zinc-400">${money(variant.priceCents, variant.currency)}</div>
+              </div>
+              <button class="text-sm text-zinc-400 hover:text-zinc-200" data-role="remove-line" data-index="${index}">Remove</button>
+            </div>
+            <div class="mt-2 flex items-center gap-2">
+              <button class="rounded-lg border border-zinc-700 px-2" data-role="decr" data-index="${index}">−</button>
+              <input class="w-14 text-center rounded-lg border border-zinc-700 bg-black text-zinc-100" type="number" min="1" value="${item.quantity}" data-role="qty" data-index="${index}" />
+              <button class="rounded-lg border border-zinc-700 px-2" data-role="incr" data-index="${index}">+</button>
+              <span class="ml-auto text-sm text-zinc-400">${lineTotal}</span>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function getCartSubtotal() {
+      return CART.reduce((sum, item) => {
+        const product = PRODUCT_MAP.get(item.productId);
+        const variant = (product?.variants || []).find((entry) => entry.id === item.variantId);
+        return variant ? sum + variant.priceCents * item.quantity : sum;
+      }, 0);
+    }
+
+    function renderCart() {
+      const validLines = CART.filter((item) => {
+        const product = PRODUCT_MAP.get(item.productId);
+        const variant = (product?.variants || []).find((entry) => entry.id === item.variantId);
+        return product && variant;
+      });
+      if (validLines.length !== CART.length) {
+        CART = validLines;
+        saveCart();
+      }
+
+      const quantity = CART.reduce((sum, item) => sum + item.quantity, 0);
+      $("#cartCount").textContent = String(quantity);
+      $("#cartLines").innerHTML = CART.length ? CART.map(cartLineHTML).join("") : '<div class="p-6 text-sm text-zinc-400">Your cart is empty.</div>';
+      $("#cartSubtotal").textContent = CART.length ? money(getCartSubtotal(), STORE.collection.currency || "USD") : "—";
+      $("#checkoutBtn").disabled = CART.length === 0;
+    }
+
+    function addCurrentVariantToCart() {
+      if (!CURRENT_PRODUCT || !CURRENT_VARIANT || !CURRENT_VARIANT.available) {
+        return;
+      }
+
+      const quantity = Math.max(1, parseInt($("#qtyInput").value || "1", 10));
+      const existing = CART.find((line) => line.variantId === CURRENT_VARIANT.id);
+      if (existing) {
+        existing.quantity += quantity;
+      } else {
+        CART.push({
+          productId: CURRENT_PRODUCT.id,
+          variantId: CURRENT_VARIANT.id,
+          quantity
+        });
+      }
+      saveCart();
+      renderCart();
+      $("#modalStatus").textContent = "Added to cart";
+    }
+
+    function updateCartLine(index, quantity) {
+      if (!CART[index]) return;
+      if (quantity <= 0) {
+        CART.splice(index, 1);
+      } else {
+        CART[index].quantity = quantity;
+      }
+      saveCart();
+      renderCart();
+    }
+
+    async function beginCheckout() {
+      const checkoutBtn = $("#checkoutBtn");
+      checkoutBtn.disabled = true;
+      checkoutBtn.textContent = "Redirecting…";
+
+      try {
+        const response = await fetch(CHECKOUT_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ cartItems: CART })
+        });
+        const payload = await response.json();
+        if (!response.ok || !payload.url) {
+          throw new Error(payload.error || "Checkout failed.");
+        }
+        window.location.href = payload.url;
+      } catch (error) {
+        const banner = $("#bannerMessage");
+        banner.textContent = error.message;
+        banner.classList.remove("hidden");
+        checkoutBtn.disabled = false;
+        checkoutBtn.textContent = "Checkout";
+      }
+    }
+
+    function showPageMessage() {
+      const params = new URLSearchParams(window.location.search);
+      const banner = $("#bannerMessage");
+      if (params.get("checkout") === "cancelled") {
+        banner.textContent = "Checkout was canceled. Your cart is still here.";
+        banner.classList.remove("hidden");
+      }
+    }
+
+    async function loadCatalog() {
+      setLoading(true);
+      $("#grid").innerHTML = "";
+      $("#emptyState").classList.add("hidden");
+
+      let response = await fetch(CATALOG_URL, { headers: { Accept: "application/json" } });
+      if (!response.ok) {
+        response = await fetch("/data/products.json", { headers: { Accept: "application/json" } });
+      }
+      if (!response.ok) {
+        throw new Error("Failed to load catalog.");
+      }
+
+      STORE = await response.json();
+      const products = (STORE.products || []).filter((product) => product.active);
+      PRODUCT_MAP = new Map(products.map((product) => [product.id, product]));
+      document.title = `${STORE.collection?.title || "Trash Day Merch"} — Projectile`;
+      $("#siteTitle").textContent = STORE.collection?.title || "Trash Day Merch";
+      $("#collectionSubtitle").textContent = STORE.collection?.subtitle || "";
+      renderGrid(products);
+      setLoading(false);
+      renderCart();
+    }
+
+    document.addEventListener("click", (event) => {
+      const target = event.target.closest("[data-role]");
+      if (!target) return;
+      const role = target.getAttribute("data-role");
+
+      if (role === "open-modal") {
+        openProductModal(target.getAttribute("data-id"));
+      }
+      if (role === "option") {
+        const name = target.getAttribute("data-name");
+        const value = target.getAttribute("data-value");
+        syncVariantSelection(CURRENT_PRODUCT, { ...CURRENT_SELECTION, [name]: value });
+      }
+      if (role === "thumb") {
+        $("#modalImage").src = target.getAttribute("data-src");
+        $$("#modalThumbs button").forEach((button) => button.classList.remove("ring-2", "ring-red-500"));
+        target.classList.add("ring-2", "ring-red-500");
+      }
+      if (role === "remove-line") {
+        updateCartLine(Number(target.getAttribute("data-index")), 0);
+      }
+      if (role === "decr") {
+        const index = Number(target.getAttribute("data-index"));
+        const current = CART[index];
+        if (current) updateCartLine(index, current.quantity - 1);
+      }
+      if (role === "incr") {
+        const index = Number(target.getAttribute("data-index"));
+        const current = CART[index];
+        if (current) updateCartLine(index, current.quantity + 1);
+      }
+    });
+
+    $("#cartButton").addEventListener("click", () => {
+      $("#cartDrawer").classList.remove("hidden");
+      renderCart();
+    });
+    $("#drawerClose").addEventListener("click", () => $("#cartDrawer").classList.add("hidden"));
+    $("#drawerBackdrop").addEventListener("click", () => $("#cartDrawer").classList.add("hidden"));
+    $("#modalClose").addEventListener("click", closeProductModal);
+    $("#modalBackdrop").addEventListener("click", closeProductModal);
+    $("#addToCartBtn").addEventListener("click", addCurrentVariantToCart);
+    $("#checkoutBtn").addEventListener("click", beginCheckout);
+
+    window.addEventListener("keydown", (event) => {
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
+        event.preventDefault();
+        $("#searchInput")?.focus();
+      }
+      if (event.key === "Escape") {
+        $("#productModal")?.classList.add("hidden");
+        $("#cartDrawer")?.classList.add("hidden");
+        document.body.style.overflow = "";
+      }
+    });
+
+    $("#searchInput").addEventListener("input", (event) => {
+      const query = event.target.value.trim().toLowerCase();
+      const products = (STORE.products || []).filter((product) => {
+        const haystack = `${product.title} ${product.description || ""}`.toLowerCase();
+        return haystack.includes(query);
+      });
+      renderGrid(products);
+    });
+
+    document.addEventListener("change", (event) => {
+      const input = event.target.closest('input[data-role="qty"]');
+      if (!input) return;
+      const index = Number(input.getAttribute("data-index"));
+      updateCartLine(index, Math.max(1, parseInt(input.value || "1", 10)));
+    });
+
+    const skeleton = $("#cardSkeleton").content.firstElementChild;
+    const loadingGrid = $("#loadingGrid");
+    loadingGrid.innerHTML = "";
+    for (let index = 0; index < 6; index += 1) {
+      loadingGrid.appendChild(skeleton.cloneNode(true));
+    }
+
+    loadCart();
+    showPageMessage();
+    loadCatalog().catch((error) => {
+      setLoading(false);
+      $("#grid").innerHTML = `<div class="p-6 rounded-xl bg-red-50 border border-red-200 text-red-800">${error.message}</div>`;
+    });
+  </script>
+</body>
+</html>

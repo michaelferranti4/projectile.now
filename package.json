@@ -1,0 +1,14 @@
+{
+  "name": "projectile-now",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Projectile storefront with Netlify Functions and Stripe checkout.",
+  "scripts": {
+    "start": "netlify dev",
+    "build": "echo 'Static site build complete.'"
+  },
+  "dependencies": {
+    "@netlify/functions": "^2.8.2",
+    "stripe": "^18.1.1"
+  }
+}
