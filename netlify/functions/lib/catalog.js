@@ -1,9 +1,25 @@
 const fs = require("fs");
 const path = require("path");
 
-const catalogPath = path.resolve(__dirname, "../../../data/products.json");
+function resolveCatalogPath() {
+  const candidates = [
+    path.resolve(process.cwd(), "data/products.json"),
+    path.resolve(__dirname, "../../../data/products.json"),
+    path.resolve(__dirname, "../../data/products.json"),
+    path.resolve("/var/task/data/products.json")
+  ];
+
+  for (const candidate of candidates) {
+    if (fs.existsSync(candidate)) {
+      return candidate;
+    }
+  }
+
+  throw new Error(`Catalog file not found. Checked: ${candidates.join(", ")}`);
+}
 
 function readCatalog() {
+  const catalogPath = resolveCatalogPath();
   const raw = fs.readFileSync(catalogPath, "utf8");
   return JSON.parse(raw);
 }
