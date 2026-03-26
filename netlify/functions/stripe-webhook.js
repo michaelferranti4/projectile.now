@@ -12,9 +12,6 @@ async function sendOrderEmail(order) {
   if (!process.env.RESEND_API_KEY || !process.env.ORDER_ALERT_EMAIL || !process.env.ORDER_FROM_EMAIL) {
     return { skipped: true, reason: "Email environment variables not fully configured." };
   }
-
-  const { Resend } = require("resend");
-  const resend = new Resend(process.env.RESEND_API_KEY);
   const shipping = order.shipping || {};
   const addressLines = [
     shipping.name,
@@ -38,12 +35,24 @@ async function sendOrderEmail(order) {
     <ul>${itemsHtml}</ul>
   `;
 
-  await resend.emails.send({
-    from: process.env.ORDER_FROM_EMAIL,
-    to: [process.env.ORDER_ALERT_EMAIL],
-    subject: `New Projectile order ${order.sessionId}`,
-    html
+  const result = await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${process.env.RESEND_API_KEY}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      from: process.env.ORDER_FROM_EMAIL,
+      to: [process.env.ORDER_ALERT_EMAIL],
+      subject: `New Projectile order ${order.sessionId}`,
+      html
+    })
   });
+
+  if (!result.ok) {
+    const details = await result.text();
+    throw new Error(`Resend email failed with status ${result.status}: ${details}`);
+  }
 
   return { skipped: false };
 }
