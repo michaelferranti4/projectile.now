@@ -103,9 +103,6 @@ exports.handler = async function handler(event) {
           product_data: {
             name: match.product.title,
             description: variantLabel && variantLabel !== "Default Title" ? variantLabel : undefined,
-            images: match.product.images
-              .map((image) => image.startsWith("http") ? image : `${getBaseUrl(event)}/${image.replace(/^\//, "")}`)
-              .slice(0, 8),
             metadata: {
               productId: match.product.id,
               variantId: match.variant.id
@@ -155,6 +152,12 @@ exports.handler = async function handler(event) {
 
     return json(200, { url: session.url, id: session.id });
   } catch (error) {
+    console.error("Stripe checkout session creation failed", {
+      message: error.message,
+      type: error.type,
+      code: error.code,
+      param: error.param
+    });
     return json(500, { error: "Unable to create checkout session.", details: error.message });
   }
 };

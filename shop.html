@@ -462,7 +462,8 @@
         });
         const payload = await response.json();
         if (!response.ok || !payload.url) {
-          throw new Error(payload.error || "Checkout failed.");
+          const message = [payload.error, payload.details].filter(Boolean).join(" ");
+          throw new Error(message || "Checkout failed.");
         }
         window.location.href = payload.url;
       } catch (error) {
